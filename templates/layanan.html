@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+{% block page_title %}
+    {% if action == 'add' %}Tambah Layanan{% elif action == 'edit' %}Edit Layanan{% else %}Layanan{% endif %}
+{% endblock %}
+{% block content %}
+<div class="container">
+    {% if action == 'add' or action == 'edit' %}
+    <!-- Form for adding/editing layanan -->
+     <div class="wrapper-edit-update">
+         <form method="POST" action="{% if action == 'add' %}{{ url_for('layanan.add_layanan') }}{% else %}{{ url_for('layanan.edit_layanan', id_layanan=layanan.id_layanan) }}{% endif %}">
+             <div class="form-group">
+                 <label for="nama_layanan">Nama Layanan</label>
+                 <input type="text" 
+                        class="form-control"
+                        id="nama_layanan" 
+                        name="nama_layanan" 
+                        value="{{ layanan.nama_layanan if action == 'edit' else '' }}"
+                        required
+                        maxlength="100"
+                        placeholder="Masukkan nama layanan"
+                        oninput="validateServiceName(this)">
+                 <small class="form-text text-muted">Maksimal 100 karakter</small>
+             </div>
+             
+             <div class="form-group mt-3">
+                 <label for="id_kategori">Kategori Layanan</label>
+                 <select class="form-control" id="id_kategori" name="id_kategori" required>
+                     <option value="">Pilih Kategori</option>
+                     {% for kategori in kategori_list %}
+                     <option value="{{ kategori.id_kategori }}" 
+                             {% if action == 'edit' and layanan.id_kategori == kategori.id_kategori %}selected{% endif %}>
+                         {{ kategori.nama_kategori }}
+                     </option>
+                     {% endfor %}
+                 </select>
+             </div>
+     
+             <button type="submit" class="btn btn-primary mt-3">
+                 {% if action == 'add' %}Tambah{% else %}Update{% endif %}
+             </button>
+             <a href="{{ url_for('layanan.list_layanan') }}" class="btn btn-secondary mt-3">Kembali</a>
+        </form>
+     </div>
+
+    <script>
+    function validateServiceName(input) {
+        if (input.value.length > 100) {
+            input.value = input.value.substring(0, 100);
+        }
+    }
+    </script>
+    {% else %}
+    <!-- List of services -->
+    <div class="mt-4">
+        <div class="mb-4 container">
+            <div class="row">
+                {{ super() }}
+                <a href="{{ url_for('layanan.add_layanan') }}" class="btn btn-primary col-3 d-flex justify-content-center align-items-center">Tambah Layanan Baru</a>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">Daftar Layanan</h4>
+                <a href="{{ url_for('layanan.export_csv') }}" class="btn btn-primary">Export to CSV</a>
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nama Layanan</th>
+                            <th>Kategori</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="layanan">
+                        {% for layanan in layanan_list %}
+                        <tr>
+                            <td>{{ layanan.id_layanan }}</td>
+                            <td>{{ layanan.nama_layanan }}</td>
+                            <td>{{ layanan.kategori.nama_kategori }}</td>
+                            <td>
+                                <a href="{{ url_for('layanan.edit_layanan', id_layanan=layanan.id_layanan) }}" class="btn-action btn-edit">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                                <form method="POST" action="{{ url_for('layanan.delete_layanan', id_layanan=layanan.id_layanan) }}" class="d-inline">
+                                    <button type="submit" class="btn-action btn-delete" onclick="return confirm('Apakah Anda yakin ingin menghapus layanan ini?')">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% if not action or action == 'list' %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInputLayanan = document.getElementById('live-search-input');
+    const tableBodyLayanan = document.getElementById('layanan');
+    let debounceTimerLayanan;
+
+    if (searchInputLayanan && tableBodyLayanan) {
+        searchInputLayanan.addEventListener('input', function() {
+            const query = this.value.trim();
+            clearTimeout(debounceTimerLayanan);
+
+            debounceTimerLayanan = setTimeout(() => {               
+                if (query.length > 0 && query.length < 2) { 
+                    tableBodyLayanan.innerHTML = '<tr><td colspan="4" class="text-center">Ketik minimal 2 karakter...</td></tr>';
+                    return;
+                }
+
+                tableBodyLayanan.innerHTML = '<tr><td colspan="4" class="text-center">Mencari...</td></tr>';
+                fetch(`{{ url_for('layanan.live_search') }}?q=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(data => populateTable(data, false))
+                    .catch(error => {
+                        console.error('Error:', error);
+                        tableBodyLayanan.innerHTML = '<tr><td colspan="4" class="text-center">Oops! Terjadi kesalahan.</td></tr>';
+                    });
+            }, 350);
+        });
+    }
+
+    function populateTable(data, isFullList) {
+        tableBodyLayanan.innerHTML = '';
+
+        if (data.length === 0) {
+            const message = isFullList ? 'Belum ada data layanan.' : 'Layanan tidak ditemukan.';
+            tableBodyLayanan.innerHTML = `<tr><td colspan="4" class="text-center">${message}</td></tr>`;
+            return;
+        }
+        data.forEach(layanan => {
+            const row = `
+                <tr>
+                    <td>${layanan.id_layanan}</td>
+                    <td>${layanan.nama_layanan}</td>
+                    <td>${layanan.kategori || '-'}</td>
+                    <td>
+                        <a href="/layanan/edit/${layanan.id_layanan}" class="btn-action btn-edit" title="Edit">
+                            <i class="bi bi-pencil-square"></i>
+                        </a>
+                        <form method="POST" action="/layanan/delete/${layanan.id_layanan}" class="d-inline">
+                            <button type="submit" class="btn-action btn-delete" title="Hapus" 
+                                    onclick="return confirm('Apakah Anda yakin ingin menghapus layanan ini?')">
+                                <i class="bi bi-trash-fill"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            `;
+            tableBodyLayanan.insertAdjacentHTML('beforeend', row);
+        });
+    }
+});
+</script>
+{% endif %}
+{% endblock %} 

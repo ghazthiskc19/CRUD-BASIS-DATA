@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block page_title %}
+    {% if action == 'add' %}Tambah Pasien{% elif action == 'edit' %}Edit Pasien{% else %}Pasien{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    {% if action == 'add' or action == 'edit' %}
+    <div class="wrapper-edit-update">
+
+        <!-- Form for adding/editing pasien -->
+        <form method="POST" action="{% if action == 'add' %}{{ url_for('pasien.add_pasien') }}{% else %}{{ url_for('pasien.edit_pasien', id_pasien=pasien.id_pasien) }}{% endif %}" class="mt-4">
+            <div class="form-group">
+                <label for="nama">Nama Pasien</label>
+                <input type="text" 
+                       class="form-control" 
+                       id="nama" 
+                       name="nama" 
+                       value="{{ pasien.nama if action == 'edit' else '' }}"
+                       required>
+            </div>
+    
+            <div class="form-group mt-3">
+                <label for="no_hp">Nomor HP</label>
+                <input type="tel" 
+                       class="form-control" 
+                       id="no_hp" 
+                       name="no_hp" 
+                       value="{{ pasien.no_hp if action == 'edit' else '' }}"
+                       required>
+            </div>
+    
+            <div class="form-group mt-3">
+                <label for="alamat">Alamat</label>
+                <textarea class="form-control" 
+                          id="alamat" 
+                          name="alamat" 
+                          rows="3" 
+                          required>{{ pasien.alamat if action == 'edit' else '' }}</textarea>
+            </div>
+    
+            <div class="form-group mt-3">
+                <label for="tgl_lahir">Tanggal Lahir</label>
+                <input type="date" 
+                       class="form-control" 
+                       id="tgl_lahir" 
+                       name="tgl_lahir" 
+                       value="{{ pasien.tgl_lahir if action == 'edit' else '' }}"
+                       required>
+            </div>
+    
+            <button type="submit" class="btn btn-primary mt-3">
+                {% if action == 'add' %}Tambah{% else %}Update{% endif %}
+            </button>
+            <a href="{{ url_for('pasien.list_pasien') }}" class="btn btn-secondary mt-3">Kembali</a>
+        </form>
+    </div>
+    {% else %}
+    <!-- List of patients -->
+    <div class="mt-4">
+        <div class="mb-4 container">
+            <div class="row">
+                {{ super() }}
+                <a href="{{ url_for('pasien.add_pasien') }}" class="btn btn-primary col-3 d-flex justify-content-center align-items-center">Tambah Pasien Baru</a>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">Daftar Pasien</h4>
+                <a href="{{ url_for('pasien.export_csv') }}" class="btn btn-primary">Export to CSV</a>
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nama</th>
+                            <th>No. HP</th>
+                            <th>Alamat</th>
+                            <th>Tanggal Lahir</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pasien in pasien_list %}
+                        <tr>
+                            <td>{{ pasien.id_pasien }}</td>
+                            <td>{{ pasien.nama }}</td>
+                            <td>{{ pasien.no_hp }}</td>
+                            <td>{{ pasien.alamat }}</td>
+                            <td>{{ pasien.tgl_lahir }}</td>
+                            <td>
+                                <a href="{{ url_for('pasien.edit_pasien', id_pasien=pasien.id_pasien) }}" class="btn-action btn-edit">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                                <form method="POST" action="{{ url_for('pasien.delete_pasien', id_pasien=pasien.id_pasien) }}" class="d-inline">
+                                    <button type="submit" class="btn-action btn-delete" onclick="return confirm('Apakah Anda yakin ingin menghapus pasien ini?')">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %} 

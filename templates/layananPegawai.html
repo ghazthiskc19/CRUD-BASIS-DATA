@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block title %}Layanan Pegawai{% endblock %}
+{% block page_title %}
+    {% if action == 'add' %}Tambah Layanan Pegawai{% elif action == 'edit' %}Edit Layanan Pegawai{% else %}Layanan Pegawai{% endif %}
+{% endblock %}
+{% block content %}
+<div class="container">
+    
+    {% if action == 'add' %}
+    <div class="wrapper-edit-update">
+        <form method="POST" action="{{ url_for('layanan_pegawai.add_layanan_pegawai') }}">
+            <div class="mb-3">
+                <label for="id_layanan" class="form-label">Layanan</label>
+                <select class="form-select" id="id_layanan" name="id_layanan" required>
+                    <option value="">Pilih Layanan</option>
+                    {% for layanan in layanan_list %}
+                    <option value="{{ layanan.id_layanan }}">{{ layanan.nama_layanan }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="id_pegawai" class="form-label">Pegawai</label>
+                <select class="form-select" id="id_pegawai" name="id_pegawai" required>
+                    <option value="">Pilih Pegawai</option>
+                    {% for pegawai in pegawai_list %}
+                    <option value="{{ pegawai.id_pegawai }}">{{ pegawai.nama }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="biaya" class="form-label">Biaya</label>
+                <input type="number" class="form-control" id="biaya" name="biaya" step="0.01" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Simpan</button>
+            <a href="{{ url_for('layanan_pegawai.list_layanan_pegawai') }}" class="btn btn-secondary">Kembali</a>
+        </form>
+        </div>
+        {% elif action == 'edit' %}
+        <div class="wrapper-edit-update">
+            <form method="POST" action="{{ url_for('layanan_pegawai.edit_layanan_pegawai', id_layanan=layanan_pegawai.id_layanan, id_pegawai=layanan_pegawai.id_pegawai) }}">
+            <div class="mb-3">
+                <label for="id_layanan" class="form-label">Layanan</label>
+                <select class="form-select" id="id_layanan" name="id_layanan" required>
+                    <option value="">Pilih Layanan</option>
+                    {% for layanan in layanan_list %}
+                    <option value="{{ layanan.id_layanan }}" {% if layanan.id_layanan == layanan_pegawai.id_layanan %}selected{% endif %}>{{ layanan.nama_layanan }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="id_pegawai" class="form-label">Pegawai</label>
+                <select class="form-select" id="id_pegawai" name="id_pegawai" required>
+                    <option value="">Pilih Pegawai</option>
+                    {% for pegawai in pegawai_list %}
+                    <option value="{{ pegawai.id_pegawai }}" {% if pegawai.id_pegawai == layanan_pegawai.id_pegawai %}selected{% endif %}>{{ pegawai.nama }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="biaya" class="form-label">Biaya</label>
+                <input type="number" class="form-control" id="biaya" name="biaya" step="0.01" value="{{ layanan_pegawai.biaya }}" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Update</button>
+            <a href="{{ url_for('layanan_pegawai.list_layanan_pegawai') }}" class="btn btn-secondary">Kembali</a>
+        </form>
+        {% else %}
+    </div>
+    <div class="mb-4 container">
+        <div class="row">
+            {{ super() }}
+            <a href="{{ url_for('layanan_pegawai.add_layanan_pegawai') }}" class="btn btn-primary col-3 d-flex justify-content-center align-items-center">Tambah Layanan Pegawai</a>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">Daftar Layanan Pegawai</h4>
+                <a href="{{ url_for('layanan_pegawai.export_csv') }}" class="btn btn-primary">Export to CSV</a>
+            </div>
+            <div class="card-body">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Layanan</th>
+                            <th>Pegawai</th>
+                            <th>Biaya</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="layanan-pegawai">
+                        {% for lp in layanan_pegawai_list %}
+                        <tr>
+                            <td>{{ lp.layanan.nama_layanan }}</td>
+                            <td>{{ lp.pegawai.nama }}</td>
+                            <td>Rp {{ "{:,.2f}".format(lp.biaya).replace(',', 'X').replace('.', ',').replace('X', '.') }}</td>
+                            <td>
+                                <a href="{{ url_for('layanan_pegawai.edit_layanan_pegawai', id_layanan=lp.id_layanan, id_pegawai=lp.id_pegawai) }}" class="btn-action btn-edit">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                                <form method="POST" action="{{ url_for('layanan_pegawai.delete_layanan_pegawai', id_layanan=lp.id_layanan, id_pegawai=lp.id_pegawai) }}" class="d-inline">
+                                    <button type="submit" class="btn-action btn-delete" onclick="return confirm('Apakah Anda yakin ingin menghapus layanan pegawai ini?')">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% if not action or action == 'list' %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInputLayananPegawai = document.getElementById('live-search-input');
+    const tableBodyLayananPegawai = document.getElementById('layanan-pegawai');
+    let debounceTimerLayananPegawai;
+
+    if (searchInputLayananPegawai && tableBodyLayananPegawai) {
+        searchInputLayananPegawai.addEventListener('input', function() {
+            const query = this.value.trim();
+            clearTimeout(debounceTimerLayananPegawai);
+
+            debounceTimerLayananPegawai = setTimeout(() => {               
+                if (query.length > 0 && query.length < 2) { 
+                    tableBodyLayananPegawai.innerHTML = '<tr><td colspan="4" class="text-center">Ketik minimal 2 karakter...</td></tr>';
+                    return;
+                }
+
+                tableBodyLayananPegawai.innerHTML = '<tr><td colspan="4" class="text-center">Mencari...</td></tr>';
+                fetch(`{{ url_for('layanan_pegawai.live_search') }}?q=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(data => populateTable(data, false))
+                    .catch(error => {
+                        console.error('Error:', error);
+                        tableBodyLayananPegawai.innerHTML = '<tr><td colspan="4" class="text-center">Oops! Terjadi kesalahan.</td></tr>';
+                    });
+            }, 350);
+        });
+    }
+
+    function populateTable(data, isFullList) {
+        tableBodyLayananPegawai.innerHTML = '';
+
+        if (data.length === 0) {
+            const message = isFullList ? 'Belum ada data layanan pegawai.' : 'Layanan pegawai tidak ditemukan.';
+            tableBodyLayananPegawai.innerHTML = `<tr><td colspan="4" class="text-center">${message}</td></tr>`;
+            return;
+        }
+        data.forEach(lp => {
+            const row = `
+                <tr>
+                    <td>${lp.nama_layanan}</td>
+                    <td>${lp.nama_pegawai}</td>
+                    <td>Rp ${lp.biaya.toFixed(2)
+                        .replace(/\d(?=(\d{3})+\.)/g, '$&.')
+                        .replace('.', ',')}</td>
+                    <td>
+                        <a href="/layanan-pegawai/edit/${lp.id_layanan}/${lp.id_pegawai}" class="btn-action btn-edit" title="Edit">
+                            <i class="bi bi-pencil-square"></i>
+                        </a>
+                        <form method="POST" action="/layanan-pegawai/delete/${lp.id_layanan}/${lp.id_pegawai}" class="d-inline">
+                            <button type="submit" class="btn-action btn-delete" title="Hapus" 
+                                    onclick="return confirm('Apakah Anda yakin ingin menghapus layanan pegawai ini?')">
+                                <i class="bi bi-trash-fill"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            `;
+            tableBodyLayananPegawai.insertAdjacentHTML('beforeend', row);
+        });
+    }
+});
+</script>
+{% endif %}
+{% endblock %} 

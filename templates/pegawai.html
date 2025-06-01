@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{% block page_title %}
+    {% if action == 'add' %}Tambah Pegawai{% elif action == 'edit' %}Edit Pegawai{% else %}Pegawai{% endif %}
+{% endblock %}
+{% block content %}
+
+<div class="container">
+    {% if action == 'add' or action == 'edit' %}
+    <!-- Form for adding/editing pegawai -->
+     <div class="wrapper-edit-update">
+
+         <form method="POST" action="{% if action == 'add' %}{{ url_for('pegawai.add_pegawai') }}{% else %}{{ url_for('pegawai.edit_pegawai', id_pegawai=pegawai.id_pegawai) }}{% endif %}">
+             <div class="form-group">
+                 <label for="nama">Nama Pegawai</label>
+                 <input type="text" 
+                        class="form-control" 
+                        id="nama" 
+                        name="nama" 
+                        value="{{ pegawai.nama if action == 'edit' else '' }}"
+                        required>
+             </div>
+     
+             <div class="form-group mt-3">
+                 <label for="no_hp">Nomor HP</label>
+                 <input type="tel" 
+                        class="form-control" 
+                        id="no_hp" 
+                        name="no_hp" 
+                        value="{{ pegawai.no_hp if action == 'edit' else '' }}"
+                        required>
+             </div>
+     
+             <div class="form-group mt-3">
+                 <label for="jabatan">Jabatan</label>
+                 <select class="form-control" id="jabatan" name="jabatan" required>
+                     <option value="">Pilih Jabatan</option>
+                     <option value="Dokter" {% if action == 'edit' and pegawai.jabatan == 'Dokter' %}selected{% endif %}>Dokter</option>
+                     <option value="Perawat" {% if action == 'edit' and pegawai.jabatan == 'Perawat' %}selected{% endif %}>Perawat</option>
+                     <option value="Resepsionis" {% if action == 'edit' and pegawai.jabatan == 'Resepsionis' %}selected{% endif %}>Resepsionis</option>
+                     <option value="Terapis" {% if action == 'edit' and pegawai.jabatan == 'Terapis' %}selected{% endif %}>Terapis</option>
+                 </select>
+             </div>
+     
+             <button type="submit" class="btn btn-primary mt-3">
+                 {% if action == 'add' %}Tambah{% else %}Update{% endif %}
+             </button>
+             <a href="{{ url_for('pegawai.list_pegawai') }}" class="btn btn-secondary mt-3">Kembali</a>
+         </form>
+     </div>
+    {% else %}
+    <!-- List of employees -->
+    <div class="mt-4">
+        <div class="mb-4 container">
+            <div class="row">
+                {{ super() }}
+                <a href="{{ url_for('pegawai.add_pegawai') }}" class="btn btn-primary col-3 d-flex justify-content-center align-items-center">Tambah Pegawai Baru</a>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">Daftar Pegawai</h4>
+                <a href="{{ url_for('pegawai.export_csv') }}" class="btn btn-primary">Export to CSV</a>
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nama</th>
+                            <th>No. HP</th>
+                            <th>Jabatan</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pegawai">
+                        {% for pegawai in pegawai_list %}
+                        <tr>
+                            <td>{{ pegawai.id_pegawai }}</td>
+                            <td>{{ pegawai.nama }}</td>
+                            <td>{{ pegawai.no_hp }}</td>
+                            <td>{{ pegawai.jabatan }}</td>
+                            <td>
+                                <a href="{{ url_for('pegawai.edit_pegawai', id_pegawai=pegawai.id_pegawai) }}" class="btn-action btn-edit">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                                <form method="POST" action="{{ url_for('pegawai.delete_pegawai', id_pegawai=pegawai.id_pegawai) }}" class="d-inline">
+                                    <button type="submit" class="btn-action btn-delete" onclick="return confirm('Apakah Anda yakin ingin menghapus pegawai ini?')">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}    
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% if not action or action == 'list' %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInputPegawai = document.getElementById('live-search-input');
+    const tableBodyPegawai = document.getElementById('pegawai');
+    let debounceTimerPegawai;
+
+    if (searchInputPegawai && tableBodyPegawai) {
+        searchInputPegawai.addEventListener('input', function() {
+            const query = this.value.trim();
+            clearTimeout(debounceTimerPegawai);
+
+            debounceTimerPegawai = setTimeout(() => {               
+                if (query.length > 0 && query.length < 2) { 
+                    tableBodyPegawai.innerHTML = '<tr><td colspan="5" class="text-center">Ketik minimal 2 karakter...</td></tr>';
+                    return;
+                }
+
+                tableBodyPegawai.innerHTML = '<tr><td colspan="5" class="text-center">Mencari...</td></tr>';
+                fetch(`{{ url_for('pegawai.live_search') }}?q=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(data => populateTable(data, false))
+                    .catch(error => {
+                        console.error('Error:', error);
+                        tableBodyPegawai.innerHTML = '<tr><td colspan="5" class="text-center">Oops! Terjadi kesalahan.</td></tr>';
+                    });
+            }, 350);
+        });
+    }
+
+    function populateTable(data, isFullList) {
+        tableBodyPegawai.innerHTML = '';
+
+        if (data.length === 0) {
+            const message = isFullList ? 'Belum ada data pegawai.' : 'Pegawai tidak ditemukan.';
+            tableBodyPegawai.innerHTML = `<tr><td colspan="5" class="text-center">${message}</td></tr>`;
+            return;
+        }
+        data.forEach(pegawai => {
+            const row = `
+                <tr>
+                    <td>${pegawai.id_pegawai}</td>
+                    <td>${pegawai.nama}</td>
+                    <td>${pegawai.no_hp}</td>
+                    <td>${pegawai.jabatan}</td>
+                    <td>
+                        <a href="/pegawai/edit/${pegawai.id_pegawai}" class="btn-action btn-edit" title="Edit">
+                            <i class="bi bi-pencil-square"></i>
+                        </a>
+                        <form method="POST" action="/pegawai/delete/${pegawai.id_pegawai}" class="d-inline">
+                            <button type="submit" class="btn-action btn-delete" title="Hapus" 
+                                    onclick="return confirm('Apakah Anda yakin ingin menghapus pegawai ini?')">
+                                <i class="bi bi-trash-fill"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            `;
+            tableBodyPegawai.insertAdjacentHTML('beforeend', row);
+        });
+    }
+});
+</script>
+{% endif %}
+{% endblock %} 

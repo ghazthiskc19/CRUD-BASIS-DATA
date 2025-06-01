@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% block page_title %}
+{% if action == 'add' %}Tambah Kategori{% elif action == 'edit' %}Edit Kategori{% else %}Kategori{% endif %}
+{% endblock %}
+{% block content %}
+<div class="container">
+    {% if action == 'edit' or action == 'add' %}
+    <!-- Form for editing kategori -->
+    <div class="mb-4">
+        <div class="wrapper-edit-update">
+            <form method="POST"  
+                action="{% if action == 'edit' %}{{ url_for('kategori.edit_kategori', id_kategori=kategori.id_kategori) }}{% else %}{{ url_for('kategori.add_kategori') }}{% endif %}">
+                <div class="mb-3">
+                    <label for="nama_kategori" class="form-label">Nama Kategori</label>
+                    <input type="text" 
+                           class="form-control form-in-edit" 
+                           id="nama_kategori" 
+                           name="nama_kategori" 
+                           value="{{ kategori.nama_kategori if action == 'edit' else '' }}"
+                           required
+                           maxlength="100">
+                </div>
+                <button type="submit" class="btn btn-primary">{% if action == 'edit' %}Update Kategori{% else %}Tambah Kategori{% endif %}</button>
+                <a href="{{ url_for('kategori.list_kategori') }}" class="btn btn-secondary">Kembali</a>
+            </form>
+        </div>
+    </div>
+    {% else %}
+    <div class="mb-4 container">
+        <div class="row">
+            {{ super() }}
+            <a href="{{ url_for('kategori.add_kategori') }}" class="btn btn-primary col-3 d-flex justify-content-center align-items-center">Tambah Kategori</a>
+        </div>
+    </div>
+
+    <!-- Kategori List -->
+     
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">Daftar Kategori</h4>
+            <a href="{{ url_for('kategori.export_csv') }}" class="btn btn-primary">Export to CSV</a>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nama Kategori</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="kategori">
+                        {% for kategori in kategori_list %}
+                        <tr>
+                            <td>{{ kategori.id_kategori }}</td>
+                            <td>{{ kategori.nama_kategori }}</td>
+                            <td>
+                                <a href="{{ url_for('kategori.edit_kategori', id_kategori=kategori.id_kategori) }}" class="btn-action btn-edit">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                                <form method="POST" action="{{ url_for('kategori.delete_kategori', id_kategori=kategori.id_kategori) }}" class="d-inline">
+                                    <button type="submit" class="btn-action btn-delete" onclick="return confirm('Apakah Anda yakin ingin menghapus kategori ini?')">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% if not action or action == 'list' %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInputKategori = document.getElementById('live-search-input');
+    const tableBodyKategori = document.getElementById('kategori');
+    let debounceTimerKategori;
+
+    if (searchInputKategori && tableBodyKategori) {
+        searchInputKategori.addEventListener('input', function() {
+            const query = this.value.trim();
+            clearTimeout(debounceTimerKategori);
+
+            debounceTimerKategori = setTimeout(() => {               
+                if (query.length > 0 && query.length < 2) { 
+                    tableBodyKategori.innerHTML = '<tr><td colspan="3" class="text-center">Ketik minimal 2 karakter...</td></tr>';
+                    return;
+                }
+
+                tableBodyKategori.innerHTML = '<tr><td colspan="3" class="text-center">Mencari...</td></tr>';
+                fetch(`{{ url_for('kategori.live_search') }}?q=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(data => populateTable(data, false))
+                    .catch(error => {
+                        console.error('Error:', error);
+                        tableBodyKategori.innerHTML = '<tr><td colspan="3" class="text-center">Oops! Terjadi kesalahan.</td></tr>';
+                    });
+            }, 350);
+        });
+    }
+
+        function populateTable(data, isFullList) {
+        tableBodyKategori.innerHTML = '';
+
+        if (data.length === 0) {
+            const message = isFullList ? 'Belum ada data kategori.' : 'Kategori tidak ditemukan.';
+            tableBodyKategori.innerHTML = `<tr><td colspan="3" class="text-center">${message}</td></tr>`;
+            return;
+        }
+        data.forEach(kategori => {
+            const row = `
+                <tr>
+                    <td>${kategori.id_kategori}</td>
+                    <td>${kategori.nama_kategori}</td>
+                    <td>
+                        <a href="/kategori/edit/${kategori.id_kategori}" class="btn-action btn-edit" title="Edit">
+                            <i class="bi bi-pencil-square"></i>
+                        </a>
+                        <form method="POST" action="/kategori/delete/${kategori.id_kategori}" class="d-inline">
+                            <button type="submit" class="btn-action btn-delete" title="Hapus" 
+                                    onclick="return confirm('Apakah Anda yakin ingin menghapus kategori ini?')">
+                                <i class="bi bi-trash-fill"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            `;
+            tableBodyKategori.insertAdjacentHTML('beforeend', row);
+        });
+    }
+});
+</script>
+{% endif %}
+{% endblock %} 
+

@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+
+{% block title %}Login{% endblock %}
+{% block sidebar %} {% endblock %}
+{% block navbar %} {% endblock %}
+{% block global_styles %}
+{{ super() }}
+<style>
+    body{
+        overflow: hidden;
+    }
+    .main-content {
+        margin-left: 0px !important;
+        padding: 0 20px;
+        min-height: 100vh;
+        background: linear-gradient(180deg, black 40%, #ffcd38);
+    }
+    .row.row-login{
+    height: 100%;
+    }
+    .login-container{
+        height: 100vh;
+    }
+    .card-header-login{
+        background-color: #f3f3f3;
+    }
+    .card-body-login {
+        padding: 0 100px !important;
+    }
+    .card-login{
+        margin-top: 80px;
+        height: 100%;
+    }
+    .card-header-login {
+        background-color: white;
+        border: none;
+        margin-top: 60px;
+    }
+    .card-body-login h3{
+        font-weight: 700;
+    }
+    .image-icon {
+        text-align: center;
+    }
+    .image-icon img{
+        width: 200px;
+    }
+    .input-group-text, .input-group-text i {
+        background-color: transparent;
+        color: #bf9a2a;
+        border-right: none;
+        border-color: #bf9a2a;
+        border-width: 3px;
+    }
+    .form-control {
+        border-left: none;
+        border-color: #bf9a2a;
+        border-width: 3px;
+    }
+    .form-control:focus {
+        box-shadow: none;
+        border-color: #bf9a2a;
+    }
+    .input-group:focus-within {
+        box-shadow: none;
+    }
+</style>
+{% endblock %}
+{% block content %}
+<div class="container login-container">
+    <div class="row row-login justify-content-center">
+        <div class="col-md-6">
+            <div class="image-icon">
+                <img src="{{ url_for('static', filename='assets/2560x831.jpg')}}" alt="logo" class="img-fluid" />
+            </div>
+            <div class="card card-login">
+                <div class="card-header card-header-login">
+                    <h3 class="text-center">LOG IN</h3>
+                </div>
+                <div class="card-body card-body-login">
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-person-fill"></i>
+                                </span>
+                                <input type="text" autocomplete="off" class="form-control" id="username" name="username" placeholder="Masukkan username" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-lock-fill"></i>
+                                </span>
+                                <input type="password" autocomplete="off" class="form-control" id="password" name="password" placeholder="Masukkan password" required>
+                            </div>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary mt-5" style="height: 45px;">Login</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

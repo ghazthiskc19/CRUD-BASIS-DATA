@@ -1,0 +1,600 @@
+{% extends "base.html" %}
+{% block page_title %}
+    {% if action == 'add' %}Tambah Transaksi{% elif action == 'view' %}Detail Transaksi{% else %}Daftar Transaksi{% endif %}
+{% endblock %}
+
+{% block global_styles %}
+{{ super() }}
+<style>
+    .search-bar-transaction{
+        padding-left: 0px !important;
+    }
+    .btn-remove {
+        min-width: 50px !important;
+        height: 37px;
+    }
+    input#month-search-input {
+        border-bottom-left-radius: 0;
+        border-top-left-radius: 0;
+    }
+    input#live-search-input {
+        border-top-right-radius: 10px;
+        border-bottom-right-radius: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    {% if action == 'add' %}
+    <div class="wrapper-edit-update">
+
+        <!-- Form for adding new transaction -->
+        <form method="POST" action="{{ url_for('transaksi.add_transaksi') }}" class="mt-4">
+            <!-- Patient Selection -->
+            <div class="form-group">
+                <label for="id_pasien">Pasien</label>
+                <select class="form-control" id="id_pasien" name="id_pasien" required>
+                    <option value="">Pilih Pasien</option>
+                    {% for pasien in pasien_list %}
+                    <option value="{{ pasien.id_pasien }}">{{ pasien.nama }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+    
+            <!-- Service Details Section -->
+            <div class="mt-4">
+                <h4>Detail Layanan</h4>
+                <div id="layanan-container">
+                    <div class="layanan-item border p-3 mb-3">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Layanan</label>
+                                    <select class="form-control layanan-select" name="layanan_ids[]" required onchange="updatePegawaiOptions(this)">
+                                        <option value="">Pilih Layanan</option>
+                                        {% for layanan in layanan_list %}
+                                        <option value="{{ layanan.id_layanan }}" 
+                                                data-pegawai='{{ layanan.layanan_pegawai_data|tojson|safe }}'>
+                                            {{ layanan.nama_layanan }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Pegawai</label>
+                                    <select class="form-control pegawai-select" name="pegawai_ids[]" required>
+                                        <option value="">Pilih Pegawai</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label>Kuantitas</label>
+                                    <input type="number" 
+                                           class="form-control" 
+                                           name="kuantitas_layanan[]" 
+                                           min="1" 
+                                           value="1" 
+                                           required
+                                           oninput="validateQuantity(this)">
+                                </div>
+                            </div>
+                            <div class="col-md-1">
+                                <button type="button" class="btn btn-danger btn-sm mt-4 btn-remove" onclick="removeLayanan(this)">X</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-secondary" onclick="addLayanan()">+ Tambah Layanan</button>
+            </div>
+    
+            <!-- Product Details Section -->
+            <div class="mt-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h4>Detail Produk (Opsional)</h4>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="toggleProdukSection()" id="toggleProdukBtn">Hapus Produk</button>
+                </div>
+                <div id="produk-container">
+                    <div class="produk-item border p-3 mb-3">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Produk</label>
+                                    <select class="form-control" name="produk_ids[]">
+                                        <option value="">Pilih Produk</option>
+                                        {% for produk in produk_list %}
+                                        <option value="{{ produk.id_produk }}">{{ produk.nama_produk }} (Stok: {{ produk.stok }})</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label>Kuantitas</label>
+                                    <input type="number" 
+                                           class="form-control" 
+                                           name="kuantitas_produk[]" 
+                                           min="1" 
+                                           value="1" 
+                                           oninput="validateQuantity(this)">
+                                </div>
+                            </div>
+                            <div class="col-md-1">
+                                <button type="button" class="btn btn-danger btn-sm mt-4 btn-remove" onclick="removeProduk(this)">X</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-secondary" onclick="addProduk()" id="addProdukBtn">+ Tambah Produk</button>
+            </div>
+    
+            <button type="submit" class="btn btn-primary mt-4">Simpan Transaksi</button>
+            <a href="{{ url_for('transaksi.list_transaksi') }}" class="btn btn-secondary mt-4">Kembali</a>
+        </form>
+    </div>
+
+    {% elif action == 'view' %}
+    <!-- View Transaction Details -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h4>Informasi Transaksi</h4>
+        </div>
+        <div class="card-body">
+            <p><strong>ID Transaksi:</strong> {{ transaksi.id_transaksi }}</p>
+            <p><strong>Tanggal:</strong> {{ transaksi.tanggal }}</p>
+            <p><strong>Pasien:</strong> {{ transaksi.pasien.nama }}</p>
+            <p><strong>Total Harga:</strong> Rp {{ "{:,.2f}".format(transaksi.total_harga).replace(',', 'X').replace('.', ',').replace('X', '.') }}</p>
+        </div>
+    </div>
+
+    <!-- Service Details -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h4>Detail Layanan</h4>
+        </div>
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Layanan</th>
+                        <th>Pegawai</th>
+                        <th>Kuantitas</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for detail in detail_layanan %}
+                    <tr>
+                        <td>{{ detail.layanan.nama_layanan }}</td>
+                        <td>{{ detail.pegawai.nama }}</td>
+                        <td>{{ detail.kuantitas }}</td>
+                        <td>Rp {{ "{:,.2f}".format(detail.subtotal).replace(',', 'X').replace('.', ',').replace('X', '.') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Product Details -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h4>Detail Produk</h4>
+        </div>
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Produk</th>
+                        <th>Kuantitas</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for detail in detail_produk %}
+                    <tr>
+                        <td>{{ detail.produk.nama_produk }}</td>
+                        <td>{{ detail.kuantitas }}</td>
+                        <td>Rp {{ "{:,.2f}".format(detail.subtotal).replace(',', 'X').replace('.', ',').replace('X', '.') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <a href="{{ url_for('transaksi.list_transaksi') }}" class="btn btn-secondary mt-4">Kembali</a>
+
+    {% else %}
+    <!-- List of transactions -->
+    <div class="mt-4">
+        <div class="mb-4 container">
+            <div class="row">
+                <div class="col-9 search-bar-transaction">
+                    <div class="input-group" style="width: 100%;">
+                        <select class="form-select" id="search-type" style="max-width: 15%;">
+                            <option value="all">Semua</option>
+                            <option value="pasien">Nama Pasien</option>
+                            <option value="tanggal">Tanggal</option>
+                            <option value="bulan">Bulan</option>
+                            <option value="id">ID Transaksi</option>
+                        </select>
+                        <input type="text" 
+                               class="form-control" 
+                               id="live-search-input" 
+                               placeholder="Cari transaksi..."
+                               aria-label="Search">
+                        <input type="date" 
+                               class="form-control" 
+                               id="date-search-input" 
+                               style="display: none;"
+                               aria-label="Search by date">
+                        <div id="month-search-container" style="display: none; width: 85%;">
+                            <div class="input-group">
+                                <input type="number" 
+                                       class="form-control form-month" 
+                                       id="month-search-input" 
+                                       min="1" 
+                                       max="12" 
+                                       placeholder="Bulan (1-12)"
+                                       aria-label="Search by month">
+                                <input type="number" 
+                                       class="form-control" 
+                                       id="year-search-input" 
+                                       min="2000" 
+                                       max="2100" 
+                                       placeholder="Tahun"
+                                       aria-label="Search by year">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <a href="{{ url_for('transaksi.add_transaksi') }}" class="btn btn-primary col-3 d-flex justify-content-center align-items-center">Tambah Transaksi Baru</a>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">Daftar Transaksi</h4>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('transaksi.export_csv') }}" class="btn btn-primary">Export to CSV</a>
+                </div>
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tanggal</th>
+                            <th>Pasien</th>
+                            <th>Total Harga</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transaksi">
+                        {% for transaksi in transaksi_list %}
+                        <tr>
+                            <td>{{ transaksi.id_transaksi }}</td>
+                            <td>{{ transaksi.tanggal }}</td>
+                            <td>{{ transaksi.pasien.nama }}</td>
+                            <td>Rp {{ "{:,.2f}".format(transaksi.total_harga).replace(',', 'X').replace('.', ',').replace('X', '.') }}</td>
+                            <td>
+                                <a href="{{ url_for('transaksi.view_transaksi', id_transaksi=transaksi.id_transaksi) }}" class="btn-action btn-edit">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <form method="POST" action="{{ url_for('transaksi.delete_transaksi', id_transaksi=transaksi.id_transaksi) }}" class="d-inline">
+                                    <button type="submit" class="btn-action btn-delete" onclick="return confirm('Apakah Anda yakin ingin menghapus transaksi ini?')">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Hidden element to store pegawai data -->
+<script type="application/json" id="pegawai-data">
+{{ pegawai_list|tojson|safe }}
+</script>
+
+<!-- JavaScript for dynamic form fields -->
+<script>
+// Initialize allPegawai as a global variable
+let allPegawai = {};
+
+// Function to initialize pegawai data
+function initializePegawaiData() {
+    const pegawaiData = document.getElementById('pegawai-data').textContent;
+    try {
+        allPegawai = JSON.parse(pegawaiData || '[]').reduce((acc, pegawai) => {
+            acc[pegawai.id_pegawai] = {
+                id: pegawai.id_pegawai,
+                nama: pegawai.nama
+            };
+            return acc;
+        }, {});
+        console.log('Pegawai data initialized:', allPegawai);
+    } catch (e) {
+        console.error('Error parsing pegawai data:', e);
+        allPegawai = {};
+    }
+}
+
+function updatePegawaiOptions(layananSelect) {
+    const layananItem = layananSelect.closest('.layanan-item');
+    const pegawaiSelect = layananItem.querySelector('.pegawai-select');
+    const selectedOption = layananSelect.options[layananSelect.selectedIndex];
+    
+    // Clear current options
+    pegawaiSelect.innerHTML = '<option value="">Pilih Pegawai</option>';
+    
+    if (selectedOption.value) {
+        try {
+            const layananPegawai = JSON.parse(selectedOption.dataset.pegawai || '[]');
+            console.log('Layanan Pegawai:', layananPegawai);
+            
+            layananPegawai.forEach(lp => {
+                const pegawai = allPegawai[lp.id_pegawai];
+                if (pegawai) {
+                    const option = document.createElement('option');
+                    option.value = pegawai.id;
+                    option.textContent = pegawai.nama;
+                    pegawaiSelect.appendChild(option);
+                }
+            });
+        } catch (e) {
+            console.error('Error updating pegawai options:', e);
+        }
+    }
+}
+
+function validateQuantity(input) {
+    if (input.value < 1) {
+        input.value = 1;
+    }
+}
+
+function addLayanan() {
+    const container = document.getElementById('layanan-container');
+    const newItem = container.children[0].cloneNode(true);
+    
+    // Clear selected values
+    newItem.querySelectorAll('select').forEach(select => {
+        select.value = '';
+        if (select.classList.contains('pegawai-select')) {
+            select.innerHTML = '<option value="">Pilih Pegawai</option>';
+        }
+    });
+    
+    newItem.querySelectorAll('input').forEach(input => {
+        input.value = '1';
+        input.oninput = function() { validateQuantity(this); };
+    });
+    
+    // Add event listener to the new layanan select
+    const layananSelect = newItem.querySelector('.layanan-select');
+    layananSelect.onchange = function() { updatePegawaiOptions(this); };
+    
+    container.appendChild(newItem);
+}
+
+function removeLayanan(button) {
+    const container = document.getElementById('layanan-container');
+    if (container.children.length > 1) {
+        button.closest('.layanan-item').remove();
+    }
+}
+
+function toggleProdukSection() {
+    const container = document.getElementById('produk-container');
+    const addBtn = document.getElementById('addProdukBtn');
+    const toggleBtn = document.getElementById('toggleProdukBtn');
+    
+    if (container.style.display === 'none') {
+        // Show the section
+        container.style.display = 'block';
+        addBtn.style.display = 'inline-block';
+        toggleBtn.textContent = 'Hapus Produk';
+        toggleBtn.classList.remove('btn-success');
+        toggleBtn.classList.add('btn-danger');
+    } else {
+        // Hide the section
+        container.style.display = 'none';
+        addBtn.style.display = 'none';
+        toggleBtn.textContent = 'Tambah Produk';
+        toggleBtn.classList.remove('btn-danger');
+        toggleBtn.classList.add('btn-success');
+        
+        // Clear all product inputs
+        container.querySelectorAll('select').forEach(select => select.value = '');
+        container.querySelectorAll('input').forEach(input => input.value = '1');
+    }
+}
+
+function addProduk() {
+    const container = document.getElementById('produk-container');
+    const newItem = container.children[0].cloneNode(true);
+    // Clear selected values
+    newItem.querySelectorAll('select').forEach(select => select.value = '');
+    newItem.querySelectorAll('input').forEach(input => {
+        input.value = '1';
+        input.oninput = function() { validateQuantity(this); };
+    });
+    container.appendChild(newItem);
+}
+
+function removeProduk(button) {
+    const container = document.getElementById('produk-container');
+    if (container.children.length > 1) {
+        button.closest('.produk-item').remove();
+    }
+}
+
+// Initialize everything when the DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize pegawai data
+    initializePegawaiData();
+    
+    // Initialize first layanan select
+    const firstLayananSelect = document.querySelector('.layanan-select');
+    if (firstLayananSelect) {
+        firstLayananSelect.onchange = function() { updatePegawaiOptions(this); };
+    }
+    
+    // Initialize product section
+    const produkContainer = document.getElementById('produk-container');
+    if (produkContainer) {
+        produkContainer.style.display = 'block';
+    }
+});
+</script>
+
+{% if not action or action == 'list' %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('live-search-input');
+    const dateSearchInput = document.getElementById('date-search-input');
+    const monthSearchInput = document.getElementById('month-search-input');
+    const yearSearchInput = document.getElementById('year-search-input');
+    const monthSearchContainer = document.getElementById('month-search-container');
+    const searchType = document.getElementById('search-type');
+    const tableBody = document.getElementById('transaksi');
+    let debounceTimer;
+
+    // Set current year as default
+    yearSearchInput.value = new Date().getFullYear();
+
+    // Function to handle search type change
+    searchType.addEventListener('change', function() {
+        const type = this.value;
+        // Hide all inputs first
+        searchInput.style.display = 'none';
+        dateSearchInput.style.display = 'none';
+        monthSearchContainer.style.display = 'none';
+        
+        // Show relevant input
+        if (type === 'tanggal') {
+            dateSearchInput.style.display = 'block';
+            dateSearchInput.value = '';
+        } else if (type === 'bulan') {
+            monthSearchContainer.style.display = 'block';
+            monthSearchInput.value = '';
+        } else {
+            searchInput.style.display = 'block';
+            searchInput.value = '';
+        }
+        
+        // Trigger search if there's a value
+        if (type === 'tanggal' && dateSearchInput.value) {
+            performSearch(dateSearchInput.value, type);
+        } else if (type === 'bulan' && monthSearchInput.value && yearSearchInput.value) {
+            performSearch(`${yearSearchInput.value}-${monthSearchInput.value.padStart(2, '0')}`, type);
+        } else if (searchInput.value.trim().length >= 2) {
+            performSearch(searchInput.value.trim(), type);
+        }
+    });
+
+    // Function to perform search
+    function performSearch(query, type) {
+        if ((type === 'tanggal' || type === 'bulan') && !query) {
+            const message = type === 'tanggal' ? 'Pilih tanggal...' : 'Pilih bulan dan tahun...';
+            tableBody.innerHTML = `<tr><td colspan="5" class="text-center">${message}</td></tr>`;
+            return;
+        }
+
+        if (type !== 'tanggal' && type !== 'bulan' && query.length > 0 && query.length < 2) {
+            tableBody.innerHTML = '<tr><td colspan="5" class="text-center">Ketik minimal 2 karakter...</td></tr>';
+            return;
+        }
+
+        tableBody.innerHTML = '<tr><td colspan="5" class="text-center">Mencari...</td></tr>';
+        fetch(`{{ url_for('transaksi.live_search') }}?q=${encodeURIComponent(query)}&type=${type}`)
+            .then(response => response.json())
+            .then(data => populateTable(data, false))
+            .catch(error => {
+                console.error('Error:', error);
+                tableBody.innerHTML = '<tr><td colspan="5" class="text-center">Oops! Terjadi kesalahan.</td></tr>';
+            });
+    }
+
+    // Text search input handler
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const query = this.value.trim();
+            const type = searchType.value;
+            clearTimeout(debounceTimer);
+
+            debounceTimer = setTimeout(() => {
+                performSearch(query, type);
+            }, 350);
+        });
+    }
+
+    // Date search input handler
+    if (dateSearchInput) {
+        dateSearchInput.addEventListener('change', function() {
+            const query = this.value;
+            performSearch(query, 'tanggal');
+        });
+    }
+
+    // Month and year search input handlers
+    if (monthSearchInput && yearSearchInput) {
+        const handleMonthYearChange = () => {
+            if (monthSearchInput.value && yearSearchInput.value) {
+                const month = monthSearchInput.value.padStart(2, '0');
+                const year = yearSearchInput.value;
+                performSearch(`${year}-${month}`, 'bulan');
+            }
+        };
+
+        monthSearchInput.addEventListener('change', handleMonthYearChange);
+        yearSearchInput.addEventListener('change', handleMonthYearChange);
+    }
+
+    function populateTable(data, isFullList) {
+        tableBody.innerHTML = '';
+
+        if (data.length === 0) {
+            const message = isFullList ? 'Belum ada data transaksi.' : 'Transaksi tidak ditemukan.';
+            tableBody.innerHTML = `<tr><td colspan="5" class="text-center">${message}</td></tr>`;
+            return;
+        }
+        data.forEach(transaksi => {
+            const row = `
+                <tr>
+                    <td>${transaksi.id_transaksi}</td>
+                    <td>${transaksi.tanggal}</td>
+                    <td>${transaksi.nama_pasien}</td>
+                    <td>Rp ${transaksi.total_harga.toFixed(2)
+                        .replace(/\d(?=(\d{3})+\.)/g, '$&.')
+                        .replace('.', ',')}</td>
+                    <td>
+                        <a href="/transaksi/view/${transaksi.id_transaksi}" class="btn-action btn-edit" title="Lihat">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <form method="POST" action="/transaksi/delete/${transaksi.id_transaksi}" class="d-inline">
+                            <button type="submit" class="btn-action btn-delete" title="Hapus" 
+                                    onclick="return confirm('Apakah Anda yakin ingin menghapus transaksi ini?')">
+                                <i class="bi bi-trash-fill"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            `;
+            tableBody.insertAdjacentHTML('beforeend', row);
+        });
+    }
+});
+</script>
+{% endif %}
+{% endblock %} 
