@@ -5,7 +5,9 @@ A Flask-based clinic management system with MS SQL Server database.
 ## Prerequisites
 
 1. Python 3.8 or higher
-2. ODBC Driver 18 for SQL Server
+2. **ODBC Driver 18 for SQL Server**
+   - Download from Microsoft: [https://learn.microsoft.com/en-us/sql/connect/odbc/download-odbc-driver-for-sql-server](https://learn.microsoft.com/en-us/sql/connect/odbc/download-odbc-driver-for-sql-server)
+   - Make sure to install the version corresponding to your operating system (x64 or x86).
 3. Git (optional, for version control)
 
 ## Setup Instructions
@@ -21,7 +23,7 @@ python -m venv venv
 
 # Activate virtual environment
 # For Windows:
-venv\Scripts\activate
+venv\\Scripts\\activate
 # For Linux/Mac:
 source venv/bin/activate
 
@@ -31,7 +33,7 @@ pip install -r requirements.txt
 
 ### 3. Database Connection
 The application is already configured to connect to the existing database:
-- Server: RIFQI\MSSQLSERVER01
+- Server: RIFQI\\MSSQLSERVER01
 - Database: MyFlaskDB
 - Username: flaskuser
 - Password: database_191025
@@ -50,6 +52,34 @@ python app.py
 - Login with these default credentials:
   - Username: `admin`
   - Password: `admin123`
+
+## Verifying Database Connection (Optional)
+
+If you encounter database connection issues, you can use the ODBC Data Source Administrator tool to verify that the ODBC Driver is installed and can connect to the database server:
+
+1.  **Open ODBC Data Source Administrator**:
+    - Press `Windows key + R`, type `odbcad32.exe`, and press Enter.
+2.  **Go to the Drivers tab**:
+    - Check if "ODBC Driver 18 for SQL Server" (or the version you installed) is listed.
+3.  **Go to the System DSN or User DSN tab**:
+    - Click "Add..." to set up a test connection.
+    - Select the "ODBC Driver 18 for SQL Server" and click "Finish".
+4.  **Configure the Test Data Source**:
+    - **Name**: Enter a name (e.g., `MyFlaskDB`).
+    - **Server**: Enter `RIFQI\\MSSQLSERVER01`.
+    - Click "Next".
+5.  **Choose Authentication**:
+    - Select "With SQL Server authentication using a login ID and password entered by the user."
+    - Enter "Login ID": `flaskuser`
+    - Enter "Password": `database_191025`
+    - Click "Next".
+6.  **Change the Default Database**:
+    - Check "Change the default database to:" and select `MyFlaskDB`.
+    - Click "Next" on subsequent screens.
+7.  **Test the Data Source**:
+    - Click "Finish".
+    - In the summary window, click **"Test Data Source..."**.
+    - A "TESTS COMPLETED SUCCESSFULLY!" message indicates a successful connection from your machine using the driver and credentials.
 
 ## Project Structure
 ```
@@ -87,27 +117,29 @@ clinic-crud/
 
 ### Common Issues:
 
-1. **Database Connection Error**
-   - Make sure SQL Server is running on the server
-   - Ensure ODBC Driver 18 is installed
-   - Check if you can connect to the server using SSMS
+1.  **Database Connection Error**
+    - Make sure SQL Server is running on the server (`RIFQI\\MSSQLSERVER01`).
+    - Ensure **ODBC Driver 18 for SQL Server** is installed on your machine.
+    - Verify your connection setup by following the steps in the "Verifying Database Connection (Optional)" section above. If the test fails there, the issue is with the driver or server connection, not the Python code.
+    - Check if you can connect to the server using SSMS with the provided credentials (`flaskuser`/`database_191025`).
+    - Verify network connectivity to the database server (e.g., can you ping the server machine).
 
-2. **Module Not Found Error**
-   - Make sure virtual environment is activated
-   - Run `pip install -r requirements.txt` again
+2.  **Module Not Found Error**
+    - Make sure virtual environment is activated.
+    - Run `pip install -r requirements.txt` again.
 
-3. **Port Already in Use**
-   - Change the port in `app.py`
-   - Or close the application using the port
+3.  **Port Already in Use**
+    - Change the port in `app.py`.
+    - Or close the application using the port.
 
 ## Security Notes
-- Change the default admin password after first login
-- Keep your database credentials secure
-- Regularly update dependencies for security patches
+- Change the default admin password after first login.
+- Keep your database credentials secure.
+- Regularly update dependencies for security patches.
 
 ## Support
 If you encounter any issues:
-1. Check the troubleshooting section
-2. Verify all prerequisites are installed
-3. Ensure you can connect to the database server
-4. Contact the system administrator for database access 
+1.  Check the troubleshooting section.
+2.  Verify all prerequisites are installed (including the ODBC driver).
+3.  Ensure you can connect to the database server using the methods described.
+4.  Contact the system administrator for database access if needed. 
