@@ -73,8 +73,9 @@ If you encounter database connection issues, you can use the ODBC Data Source Ad
     - Enter "Login ID": `flaskuser`
     - Enter "Password": `database_191025`
     - Click "Next".
-6.  **Change the Default Database**:
-    - Check "Change the default database to:" and select `MyFlaskDB`.
+6.  **Configure Encryption and Trust Server Certificate**:
+    - On the "Connect to SQL Server" screen, ensure **"Encrypt"** is set to **"Yes"**.
+    - On the next screen (where you change the default database), check the box for **"Trust server certificate"**.
     - Click "Next" on subsequent screens.
 7.  **Test the Data Source**:
     - Click "Finish".
@@ -120,7 +121,7 @@ clinic-crud/
 1.  **Database Connection Error**
     - Make sure SQL Server is running on the server (`RIFQI\\MSSQLSERVER01`).
     - Ensure **ODBC Driver 18 for SQL Server** is installed on your machine.
-    - Verify your connection setup by following the steps in the "Verifying Database Connection (Optional)" section above. If the test fails there, the issue is with the driver or server connection, not the Python code.
+    - Verify your connection setup by following the steps in the "Verifying Database Connection (Optional)" section above. **Make sure to check "Trust server certificate" if you encounter SSL errors.** If the test fails there, the issue is with the driver or server connection, not the Python code.
     - Check if you can connect to the server using SSMS with the provided credentials (`flaskuser`/`database_191025`).
     - Verify network connectivity to the database server (e.g., can you ping the server machine).
 
