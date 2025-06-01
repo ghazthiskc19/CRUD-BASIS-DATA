@@ -5,10 +5,6 @@ from database import db
 from models import User, Pegawai, Layanan, Pasien, Transaksi, DetailTransaksiLayanan, Produk, KategoriLayanan
 import os
 import secrets
-from dotenv import load_dotenv
-
-# Load environment variables
-load_dotenv()
 
 # Import blueprints
 from routes.pasien_routes import pasien_bp
@@ -21,15 +17,8 @@ from routes.layanan_pegawai_routes import layanan_pegawai_bp
 
 # Initialize Flask app
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', secrets.token_hex(16))
-
-# Database configuration
-db_user = os.getenv('DB_USER')
-db_password = os.getenv('DB_PASSWORD')
-db_host = os.getenv('DB_HOST')
-db_name = os.getenv('DB_NAME')
-
-app.config['SQLALCHEMY_DATABASE_URI'] = f'mssql+pyodbc://{db_user}:{db_password}@{db_host}/{db_name}?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes'
+app.config['SECRET_KEY'] = secrets.token_hex(16)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mssql+pyodbc://flaskuser:database_191025@RIFQI\\MSSQLSERVER01/MyFlaskDB?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize SQLAlchemy with app
