@@ -5,10 +5,13 @@ A Flask-based clinic management system with MS SQL Server database.
 ## Prerequisites
 
 1. Python 3.8 or higher
-2. **ODBC Driver 18 for SQL Server**
+2. **MS SQL Server (Express Edition Recommended)**
+   - Download from Microsoft: [https://www.microsoft.com/en-us/sql-server/sql-server-downloads](https://www.microsoft.com/en-us/sql-server/sql-server-downloads)
+   - Choose the free **Express** edition.
+3. **ODBC Driver 18 for SQL Server**
    - Download from Microsoft: [https://learn.microsoft.com/en-us/sql/connect/odbc/download-odbc-driver-for-sql-server](https://learn.microsoft.com/en-us/sql/connect/odbc/download-odbc-driver-for-sql-server)
    - Make sure to install the version corresponding to your operating system (x64 or x86).
-3. Git (optional, for version control)
+4. Git (optional, for version control)
 
 ## Setup Instructions
 
@@ -31,22 +34,49 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 3. Database Connection
-The application is already configured to connect to the existing database:
-- Server: RIFQI\\MSSQLSERVER01
-- Database: MyFlaskDB
-- Username: flaskuser
-- Password: database_191025
+### 3. Database Setup
 
-No additional database setup is required.
+1.  **Install SQL Server Express**:
+    - Download and run the installer from the Microsoft link above.
+    - Choose the **Basic** or **Custom** installation type.
+    - If choosing Custom, install the Database Engine.
+    - During installation, note down the **Instance Name**. A common default is `SQLEXPRESS`. If you choose a custom name, remember it.
+    - Choose **Mixed Mode Authentication** when prompted, and set a strong password for the `sa` (System Administrator) account. You might also want to add your current Windows user account.
+2.  **Install SQL Server Management Studio (SSMS)** (Optional but Recommended):
+    - Download SSMS from Microsoft's website (link is usually provided during SQL Server Express installation or can be found separately).
+    - Use SSMS to connect to your local SQL Server instance.
+3.  **Create the Database**:
+    - Using SSMS or another tool, connect to your local SQL Server instance.
+    - Create a new database named `MyFlaskDB`.
+4.  **Create a SQL Server User (Optional but Recommended)**:
+    - In SSMS, expand Security -> Logins.
+    - Right-click Logins and select "New Login...".
+    - Choose "SQL Server authentication".
+    - Set "Login name" to `flaskuser`.
+    - Set "Password" to `database_191025` (or a different password).
+    - Uncheck "Enforce password policy" and "Enforce password expiration" for simplicity in development (but be aware of security implications).
+    - Set "Default database" to `MyFlaskDB`.
+    - Go to the "User Mapping" page, check the map box for `MyFlaskDB`, and in the "Database role membership" for `MyFlaskDB`, check `db_owner`.
+    - Click OK.
 
-### 4. Run the Application
+### 4. Configure Database Connection in `app.py`
+
+Modify the `SQLALCHEMY_DATABASE_URI` line in `app.py` to connect to your *local* SQL Server instance using SQL Server Authentication. Replace `YOUR_SERVER_NAME\YOUR_INSTANCE_NAME` with your actual server and instance name (e.g., `YOUR_COMPUTER_NAME\SQLEXPRESS` or just `localhost\SQLEXPRESS` if connecting from the same machine). Keep the username and password as `flaskuser` and `database_191025` if you created that user.
+
+```python
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mssql+pyodbc://flaskuser:database_191025@YOUR_SERVER_NAME\\YOUR_INSTANCE_NAME/MyFlaskDB?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes'
+```
+*Replace `YOUR_SERVER_NAME\\YOUR_INSTANCE_NAME` with your local SQL Server instance name.* You might be able to use `localhost\\SQLEXPRESS` or just `localhost` if it's the default instance.
+
+### 5. Run the Application
 ```bash
 # Make sure your virtual environment is activated
 python app.py
 ```
 
-### 5. Access the Application
+The `db.create_all()` call in `app.py` will create the necessary tables in your local `MyFlaskDB` database.
+
+### 6. Access the Application
 - Open your web browser
 - Go to `http://localhost:5000`
 - Login with these default credentials:
@@ -55,7 +85,7 @@ python app.py
 
 ## Verifying Database Connection (Optional)
 
-If you encounter database connection issues, you can use the ODBC Data Source Administrator tool to verify that the ODBC Driver is installed and can connect to the database server:
+If you encounter database connection issues after configuring your local database, you can use the ODBC Data Source Administrator tool to verify that the ODBC Driver is installed and can connect to your local database server:
 
 1.  **Open ODBC Data Source Administrator**:
     - Press `Windows key + R`, type `odbcad32.exe`, and press Enter.
@@ -65,8 +95,8 @@ If you encounter database connection issues, you can use the ODBC Data Source Ad
     - Click "Add..." to set up a test connection.
     - Select the "ODBC Driver 18 for SQL Server" and click "Finish".
 4.  **Configure the Test Data Source**:
-    - **Name**: Enter a name (e.g., `MyFlaskDB`).
-    - **Server**: Enter `RIFQI\\MSSQLSERVER01`.
+    - **Name**: Enter a name (e.g., `MyFlaskDB_Local`).
+    - **Server**: Enter your local SQL Server instance name (e.g., `localhost\\SQLEXPRESS`).
     - Click "Next".
 5.  **Choose Authentication**:
     - Select "With SQL Server authentication using a login ID and password entered by the user."
@@ -75,12 +105,12 @@ If you encounter database connection issues, you can use the ODBC Data Source Ad
     - Click "Next".
 6.  **Configure Encryption and Trust Server Certificate**:
     - On the "Connect to SQL Server" screen, ensure **"Encrypt"** is set to **"Yes"**.
-    - On the next screen (where you change the default database), check the box for **"Trust server certificate"**.
+    - On the next screen (where you change the default database), check the box for **"Trust server certificate"** (needed if your local SQL Server uses a self-signed certificate).
     - Click "Next" on subsequent screens.
 7.  **Test the Data Source**:
     - Click "Finish".
     - In the summary window, click **"Test Data Source..."**.
-    - A "TESTS COMPLETED SUCCESSFULLY!" message indicates a successful connection from your machine using the driver and credentials.
+    - A "TESTS COMPLETED SUCCESSFULLY!" message indicates a successful connection.
 
 ## Project Structure
 ```
@@ -119,11 +149,12 @@ clinic-crud/
 ### Common Issues:
 
 1.  **Database Connection Error**
-    - Make sure SQL Server is running on the server (`RIFQI\\MSSQLSERVER01`).
-    - Ensure **ODBC Driver 18 for SQL Server** is installed on your machine.
-    - Verify your connection setup by following the steps in the "Verifying Database Connection (Optional)" section above. **Make sure to check "Trust server certificate" if you encounter SSL errors.** If the test fails there, the issue is with the driver or server connection, not the Python code.
-    - Check if you can connect to the server using SSMS with the provided credentials (`flaskuser`/`database_191025`).
-    - Verify network connectivity to the database server (e.g., can you ping the server machine).
+    - Ensure your local SQL Server instance is running.
+    - Verify the **Instance Name** in your `app.py` connection string matches your local SQL Server instance name.
+    - If using SQL Server Authentication, ensure the user (`flaskuser`) and password (`database_191025`) are correct and the user has permissions to the `MyFlaskDB` database.
+    - Ensure **ODBC Driver 18 for SQL Server** is installed.
+    - Use the steps in "Verifying Database Connection (Optional)" to test the connection outside of the application. **Make sure to check "Trust server certificate" if you encounter SSL errors during the test.**
+    - Check Windows Firewall on your local machine (though usually less of an issue for `localhost` connections).
 
 2.  **Module Not Found Error**
     - Make sure virtual environment is activated.
@@ -141,6 +172,6 @@ clinic-crud/
 ## Support
 If you encounter any issues:
 1.  Check the troubleshooting section.
-2.  Verify all prerequisites are installed (including the ODBC driver).
-3.  Ensure you can connect to the database server using the methods described.
-4.  Contact the system administrator for database access if needed. 
+2.  Verify all prerequisites are installed (including SQL Server Express and the ODBC driver).
+3.  Ensure your local database and user are set up correctly.
+4.  Verify you can connect to your local database using the ODBC Administrator test. 
