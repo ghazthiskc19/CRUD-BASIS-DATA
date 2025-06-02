@@ -60,7 +60,7 @@ with app.app_context():
 @app.route('/')
 def index():
     if current_user.is_authenticated:
-        return redirect(url_for('kategori.list_kategori'))
+        return render_template('dashboard.html')
     return redirect(url_for('login'))
 
 @app.route('/login', methods=['GET', 'POST'])
