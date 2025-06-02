@@ -1,3 +1,9 @@
+CREATE DATABASE MyFlaskDB;
+GO
+
+USE MyFlaskDB;
+GO
+
 DROP TABLE IF EXISTS detail_transaksi_produk;
 DROP TABLE IF EXISTS detail_transaksi_layanan;
 DROP TABLE IF EXISTS layanan_pegawai;
@@ -8,12 +14,14 @@ DROP TABLE IF EXISTS kategori_layanan;
 DROP TABLE IF EXISTS pegawai;
 DROP TABLE IF EXISTS pasien;
 DROP TABLE IF EXISTS users;
+GO
 
 CREATE TABLE users (
     id INT IDENTITY(1,1) PRIMARY KEY,
     username NVARCHAR(100) NOT NULL UNIQUE,
     password NVARCHAR(255) NOT NULL
 );
+GO
 
 CREATE TABLE pasien (
     id_pasien INT IDENTITY(1,1) PRIMARY KEY,
@@ -24,6 +32,7 @@ CREATE TABLE pasien (
     created_at DATETIME DEFAULT GETDATE(),
     updated_at DATETIME DEFAULT GETDATE()
 );
+GO
 
 CREATE TABLE pegawai (
     id_pegawai INT IDENTITY(1,1) PRIMARY KEY,
@@ -33,6 +42,7 @@ CREATE TABLE pegawai (
     created_at DATETIME DEFAULT GETDATE(),
     updated_at DATETIME DEFAULT GETDATE()
 );
+GO
 
 CREATE TABLE kategori_layanan (
     id_kategori INT IDENTITY(1,1) PRIMARY KEY,
@@ -40,6 +50,7 @@ CREATE TABLE kategori_layanan (
     created_at DATETIME DEFAULT GETDATE(),
     updated_at DATETIME DEFAULT GETDATE()
 );
+GO
 
 CREATE TABLE layanan (
     id_layanan INT IDENTITY(1,1) PRIMARY KEY,
@@ -49,6 +60,7 @@ CREATE TABLE layanan (
     updated_at DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (id_kategori) REFERENCES kategori_layanan(id_kategori) ON DELETE CASCADE
 );
+GO
 
 CREATE TABLE produk (
     id_produk INT IDENTITY(1,1) PRIMARY KEY,
@@ -58,6 +70,7 @@ CREATE TABLE produk (
     created_at DATETIME DEFAULT GETDATE(),
     updated_at DATETIME DEFAULT GETDATE()
 );
+GO
 
 CREATE TABLE transaksi (
     id_transaksi INT IDENTITY(1,1) PRIMARY KEY,
@@ -68,6 +81,7 @@ CREATE TABLE transaksi (
     updated_at DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (id_pasien) REFERENCES pasien(id_pasien) ON DELETE CASCADE
 );
+GO
 
 CREATE TABLE layanan_pegawai (
     id_layanan INT NOT NULL,
@@ -79,6 +93,7 @@ CREATE TABLE layanan_pegawai (
     FOREIGN KEY (id_layanan) REFERENCES layanan(id_layanan) ON DELETE CASCADE,
     FOREIGN KEY (id_pegawai) REFERENCES pegawai(id_pegawai) ON DELETE CASCADE
 );
+GO
 
 CREATE TABLE detail_transaksi_layanan (
     id_detailLayanan INT IDENTITY(1,1) PRIMARY KEY,
@@ -90,20 +105,22 @@ CREATE TABLE detail_transaksi_layanan (
     created_at DATETIME DEFAULT GETDATE(),
     updated_at DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (id_transaksi) REFERENCES transaksi(id_transaksi) ON DELETE CASCADE,
-    FOREIGN KEY (id_pegawai) REFERENCES pegawai(id_pegawai) ON DELETE CASCADE,
-    FOREIGN KEY (id_layanan) REFERENCES layanan(id_layanan) ON DELETE CASCADE
+    FOREIGN KEY (id_pegawai) REFERENCES pegawai(id_pegawai) ON DELETE NO ACTION,
+    FOREIGN KEY (id_layanan) REFERENCES layanan(id_layanan) ON DELETE NO ACTION
 );
+GO
 
 CREATE TABLE detail_transaksi_produk (
     id_detailProduk INT IDENTITY(1,1) PRIMARY KEY,
     id_transaksi INT NOT NULL,
     id_produk INT NOT NULL,
-    id_layanan INT NOT NULL,
+    id_layanan INT NULL,
     kuantitas INT NOT NULL,
     subtotal DECIMAL(12,2) NOT NULL,
     created_at DATETIME DEFAULT GETDATE(),
     updated_at DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (id_transaksi) REFERENCES transaksi(id_transaksi) ON DELETE CASCADE,
-    FOREIGN KEY (id_produk) REFERENCES produk(id_produk) ON DELETE CASCADE,
-    FOREIGN KEY (id_layanan) REFERENCES layanan(id_layanan) ON DELETE CASCADE
-); 
+    FOREIGN KEY (id_produk) REFERENCES produk(id_produk) ON DELETE NO ACTION,
+    FOREIGN KEY (id_layanan) REFERENCES layanan(id_layanan) ON DELETE NO ACTION
+);
+GO

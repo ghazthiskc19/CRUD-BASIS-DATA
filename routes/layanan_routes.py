@@ -24,24 +24,20 @@ def list_layanan():
 def add_layanan():
     if request.method == 'POST':
         try:
-            # Validate required fields
             if not request.form.get('nama_layanan'):
                 raise ValueError("Nama layanan harus diisi")
             
             if not request.form.get('id_kategori'):
                 raise ValueError("Kategori layanan harus dipilih")
             
-            # Validate nama_layanan length
             nama_layanan = request.form['nama_layanan']
             if len(nama_layanan) > 100:
                 raise ValueError("Nama layanan tidak boleh lebih dari 100 karakter")
             
-            # Check if layanan with same name exists
             existing_layanan = Layanan.query.filter_by(nama_layanan=nama_layanan).first()
             if existing_layanan:
                 raise ValueError("Layanan dengan nama tersebut sudah ada")
 
-            # Validate kategori exists
             kategori = KategoriLayanan.query.get(request.form['id_kategori'])
             if not kategori:
                 raise ValueError("Kategori layanan tidak ditemukan")
@@ -82,19 +78,16 @@ def edit_layanan(id_layanan):
         
         if request.method == 'POST':
             try:
-                # Validate required fields
                 if not request.form.get('nama_layanan'):
                     raise ValueError("Nama layanan harus diisi")
                 
                 if not request.form.get('id_kategori'):
                     raise ValueError("Kategori layanan harus dipilih")
                 
-                # Validate nama_layanan length
                 nama_layanan = request.form['nama_layanan']
                 if len(nama_layanan) > 100:
                     raise ValueError("Nama layanan tidak boleh lebih dari 100 karakter")
                 
-                # Check if layanan with same name exists (excluding current layanan)
                 existing_layanan = Layanan.query.filter(
                     Layanan.nama_layanan == nama_layanan,
                     Layanan.id_layanan != id_layanan
@@ -102,7 +95,6 @@ def edit_layanan(id_layanan):
                 if existing_layanan:
                     raise ValueError("Layanan dengan nama tersebut sudah ada")
 
-                # Validate kategori exists
                 kategori = KategoriLayanan.query.get(request.form['id_kategori'])
                 if not kategori:
                     raise ValueError("Kategori layanan tidak ditemukan")

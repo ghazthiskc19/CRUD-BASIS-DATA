@@ -127,10 +127,8 @@ def add_transaksi():
                             )
                             db.session.add(detail)
 
-                # Update total price
                 transaksi.total_harga = total_harga
             
-            # If everything is successful, commit the transaction
             db.session.commit()
             flash('Transaksi berhasil ditambahkan!', 'success')
             return redirect(url_for('transaksi.list_transaksi'))

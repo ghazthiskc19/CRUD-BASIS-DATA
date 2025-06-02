@@ -21,8 +21,6 @@ app.config['SECRET_KEY'] = secrets.token_hex(16)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mssql+pyodbc://flaskuser:database_191025@RIFQI\\MSSQLSERVER01/MyFlaskDB?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Initialize SQLAlchemy with app
-db.init_app(app)
 
 # Initialize Login Manager
 login_manager = LoginManager()
@@ -44,11 +42,9 @@ app.register_blueprint(transaksi_bp)
 app.register_blueprint(kategori_bp)
 app.register_blueprint(layanan_pegawai_bp)
 
+db.init_app(app)
 with app.app_context():
-    # Create tables if they don't exist
     db.create_all()
-    
-    # Create admin user if it doesn't exist
     if not User.query.filter_by(username='admin').first():
         admin = User(
             username='admin',

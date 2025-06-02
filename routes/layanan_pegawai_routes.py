@@ -23,7 +23,6 @@ def add_layanan_pegawai():
             id_pegawai = request.form['id_pegawai']
             biaya = Decimal(request.form['biaya'])
 
-            # Check if the combination already exists
             existing = LayananPegawai.query.filter_by(
                 id_layanan=id_layanan,
                 id_pegawai=id_pegawai
@@ -67,7 +66,6 @@ def edit_layanan_pegawai(id_layanan, id_pegawai):
             new_id_pegawai = request.form['id_pegawai']
             biaya = Decimal(request.form['biaya'])
 
-            # Check if the new combination already exists (excluding current record)
             existing = LayananPegawai.query.filter(
                 LayananPegawai.id_layanan == new_id_layanan,
                 LayananPegawai.id_pegawai == new_id_pegawai,

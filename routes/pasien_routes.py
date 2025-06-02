@@ -18,9 +18,7 @@ def list_pasien():
 def add_pasien():
     if request.method == 'POST':
         try:
-            # Convert date string to Python date object
             tgl_lahir = datetime.strptime(request.form['tgl_lahir'], '%Y-%m-%d').date()
-            
             pasien = Pasien(
                 nama=request.form['nama'],
                 no_hp=request.form['no_hp'],
@@ -48,9 +46,7 @@ def edit_pasien(id_pasien):
     
     if request.method == 'POST':
         try:
-            # Convert date string to Python date object
             tgl_lahir = datetime.strptime(request.form['tgl_lahir'], '%Y-%m-%d').date()
-            
             pasien.nama = request.form['nama']
             pasien.no_hp = request.form['no_hp']
             pasien.alamat = request.form['alamat']
