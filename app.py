@@ -56,13 +56,14 @@ with app.app_context():
 @app.route('/')
 def index():
     if current_user.is_authenticated:
-        return render_template('dashboard.html')
+        return render_template('dashboard.html', current_user=current_user)
     return redirect(url_for('login'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('kategori.list_kategori'))
+        # return redirect(url_for('kategori.list_kategori'))
+        return render_template('dashboard.html')
     
     if request.method == 'POST':
         username = request.form['username']
@@ -73,7 +74,8 @@ def login():
             login_user(user)
             flash('Login successful!', 'success')
             next_page = request.args.get('next')
-            return redirect(next_page or url_for('kategori.list_kategori'))
+            # return redirect(next_page or url_for('kategori.list_kategori'))
+            return render_template('dashboard.html')
         else:
             flash('Invalid username or password', 'error')
     
@@ -106,7 +108,8 @@ def change_password():
         current_user.password = generate_password_hash(new_password)
         db.session.commit()
         flash('Password changed successfully!', 'success')
-        return redirect(url_for('kategori.list_kategori'))
+        # return redirect(url_for('kategori.list_kategori'))
+        return render_template('dashboard.html')
     
     return render_template('change_password.html')
 
@@ -137,7 +140,7 @@ def change_username():
         current_user.username = new_username
         db.session.commit()
         flash('Username changed successfully!', 'success')
-        return redirect(url_for('kategori.list_kategori'))
+        return render_template('dashboard.html')
     
     return render_template('change_username.html')
 

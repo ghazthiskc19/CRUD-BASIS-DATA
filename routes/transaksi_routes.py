@@ -53,12 +53,12 @@ def add_transaksi():
                 pegawai_ids = request.form.getlist('pegawai_ids[]')
                 kuantitas_layanan = request.form.getlist('kuantitas_layanan[]')
                 
-                if not layanan_ids:
-                    raise ValueError("Transaksi harus memiliki minimal satu layanan")
+                if not layanan_ids or not all(layanan_ids):
+                    raise ValueError("Transaksi harus memiliki minimal satu layanan yang dipilih")
                 
                 for i in range(len(layanan_ids)):
                     if not layanan_ids[i] or not pegawai_ids[i] or not kuantitas_layanan[i]:
-                        raise ValueError("Semua field layanan harus diisi")
+                        raise ValueError("Semua field layanan harus diisi untuk setiap item layanan")
                     
                     try:
                         kuantitas = int(kuantitas_layanan[i])
@@ -71,7 +71,7 @@ def add_transaksi():
                     pegawai = Pegawai.query.get(pegawai_ids[i])
                     
                     if not layanan or not pegawai:
-                        raise ValueError("Layanan atau pegawai tidak ditemukan")
+                        raise ValueError("Layanan atau pegawai tidak ditemukan (ID tidak valid)")
                     
                     layanan_pegawai = db.session.query(LayananPegawai).filter_by(
                         id_layanan=layanan_ids[i],
@@ -98,7 +98,7 @@ def add_transaksi():
                 
                 if any(produk_ids):
                     for i in range(len(produk_ids)):
-                        if produk_ids[i] and kuantitas_produk[i]:  # Only process if both fields are filled
+                        if produk_ids[i] and kuantitas_produk[i]:
                             try:
                                 kuantitas = int(kuantitas_produk[i])
                                 if kuantitas <= 0:
@@ -108,15 +108,14 @@ def add_transaksi():
                             
                             produk = Produk.query.get(produk_ids[i])
                             if not produk:
-                                raise ValueError("Produk tidak ditemukan")
+                                raise ValueError(f"Produk dengan ID {produk_ids[i]} tidak ditemukan")
                             
                             if produk.stok < kuantitas:
-                                raise ValueError(f"Stok produk {produk.nama_produk} tidak mencukupi")
+                                raise ValueError(f"Stok produk {produk.nama_produk} ({produk.stok}) tidak mencukupi untuk kuantitas {kuantitas}")
                             
                             subtotal = produk.harga * Decimal(str(kuantitas))
                             total_harga += subtotal
                             
-                            # Update product stock
                             produk.stok -= kuantitas
                             
                             detail = DetailTransaksiProduk(
@@ -138,10 +137,13 @@ def add_transaksi():
             flash(f'Error validasi: {str(ve)}', 'error')
         except IntegrityError as ie:
             db.session.rollback()
-            flash('Error: Terjadi kesalahan integritas data', 'error')
+            current_app.logger.error(f"Integrity Error during add_transaksi: {ie}")
+            flash('Error: Terjadi kesalahan integritas data. Pastikan semua input benar.', 'error')
         except Exception as e:
             db.session.rollback()
-            flash(f'Error: {str(e)}', 'error')
+            current_app.logger.error(f"Unexpected Error during add_transaksi: {e}", exc_info=True)
+            flash(f'Error: Terjadi kesalahan saat menyimpan transaksi: {str(e)}', 'error')
+            
         return redirect(url_for('transaksi.add_transaksi'))
     
     pasien_list = Pasien.query.all()
@@ -149,7 +151,6 @@ def add_transaksi():
     produk_list = Produk.query.all()
     pegawai_list = Pegawai.query.all()
     
-    # Convert layanan_pegawai data to a serializable format
     for layanan in layanan_list:
         layanan.layanan_pegawai_data = [
             {
@@ -159,7 +160,6 @@ def add_transaksi():
             for lp in layanan.layanan_pegawai
         ]
     
-    # Convert pegawai_list to a serializable format
     pegawai_data = [
         {
             'id_pegawai': p.id_pegawai,
@@ -167,8 +167,6 @@ def add_transaksi():
         }
         for p in pegawai_list
     ]
-    
-    print("Debug - Pegawai Data:", pegawai_data)  # Debug print
     
     return render_template('transaksi.html', 
                          action='add',
@@ -185,7 +183,6 @@ def view_transaksi(id_transaksi):
     detail_produk = DetailTransaksiProduk.query.filter_by(id_transaksi=id_transaksi).all()
     pegawai_list = Pegawai.query.all()
     
-    # Convert pegawai_list to a serializable format
     pegawai_data = [
         {
             'id_pegawai': p.id_pegawai,
@@ -207,7 +204,6 @@ def delete_transaksi(id_transaksi):
     transaksi = Transaksi.query.get_or_404(id_transaksi)
     try:
         with db.session.begin_nested():
-            # Restore product stock
             detail_produk = DetailTransaksiProduk.query.filter_by(id_transaksi=id_transaksi).all()
             for detail in detail_produk:
                 produk = Produk.query.get(detail.id_produk)
@@ -220,7 +216,8 @@ def delete_transaksi(id_transaksi):
         flash('Transaksi berhasil dihapus!', 'success')
     except Exception as e:
         db.session.rollback()
-        flash(f'Error: {str(e)}', 'error')
+        current_app.logger.error(f"Error during delete_transaksi {id_transaksi}: {e}", exc_info=True)
+        flash(f'Error saat menghapus transaksi: {str(e)}', 'error')
     return redirect(url_for('transaksi.list_transaksi'))
 
 @transaksi_bp.route('/transaksi/live_search')
@@ -228,7 +225,7 @@ def delete_transaksi(id_transaksi):
 def live_search():
     try:
         query_param = request.args.get('q', '').strip()
-        search_type = request.args.get('type', 'all')  # 'all', 'pasien', 'tanggal', 'bulan', 'id'
+        search_type = request.args.get('type', 'all')  # 'all', 'pasien', 'tanggal', 'bulan'
         
         if not query_param:
             list_transaksi = Transaksi.query.all()
@@ -236,19 +233,15 @@ def live_search():
             base_query = Transaksi.query.join(Pasien)
             
             if search_type == 'all':
-                # Search in all fields
                 list_transaksi = base_query.filter(
                     (Pasien.nama.ilike(f"%{query_param}%")) |
-                    (Transaksi.id_transaksi.cast(String).ilike(f"%{query_param}%")) |
                     (Transaksi.tanggal.cast(String).ilike(f"%{query_param}%"))
                 ).all()
             elif search_type == 'pasien':
-                # Search by patient name
                 list_transaksi = base_query.filter(
                     Pasien.nama.ilike(f"%{query_param}%")
                 ).all()
             elif search_type == 'tanggal':
-                # Search by date
                 try:
                     search_date = datetime.strptime(query_param, '%Y-%m-%d').date()
                     list_transaksi = base_query.filter(
@@ -257,28 +250,15 @@ def live_search():
                 except ValueError:
                     list_transaksi = []
             elif search_type == 'bulan':
-                # Search by month
                 try:
-                    # Parse the month input (format: YYYY-MM)
                     year, month = map(int, query_param.split('-'))
-                    # Get the first and last day of the month
                     first_day = date(year, month, 1)
                     if month == 12:
                         last_day = date(year + 1, 1, 1) - timedelta(days=1)
                     else:
                         last_day = date(year, month + 1, 1) - timedelta(days=1)
-                    
                     list_transaksi = base_query.filter(
                         Transaksi.tanggal.between(first_day, last_day)
-                    ).all()
-                except ValueError:
-                    list_transaksi = []
-            elif search_type == 'id':
-                # Search by transaction ID
-                try:
-                    transaksi_id = int(query_param)
-                    list_transaksi = base_query.filter(
-                        Transaksi.id_transaksi == transaksi_id
                     ).all()
                 except ValueError:
                     list_transaksi = []
@@ -295,14 +275,13 @@ def live_search():
         return jsonify(results)
         
     except Exception as e:
-        current_app.logger.error(f"Error in live_search: {str(e)}")
-        return jsonify({'error': 'Internal server error'}), 500 
+        current_app.logger.error(f"Error in live_search: {str(e)}", exc_info=True)
+        return jsonify({'error': 'Internal server error'}), 500
 
 @transaksi_bp.route('/transaksi/export_csv')
 @login_required
 def export_csv():
     try:
-        # Load transactions with all related data
         all_transaksi = Transaksi.query.options(
             db.joinedload(Transaksi.pasien),
             db.joinedload(Transaksi.detail_transaksi_layanan).joinedload(DetailTransaksiLayanan.layanan),
@@ -317,15 +296,12 @@ def export_csv():
         output = io.StringIO()
         writer = csv.writer(output)
         
-        # Write headers
         writer.writerow([
             'ID Transaksi', 'Tanggal', 'Nama Pasien', 'Total Harga',
             'Tipe Detail', 'ID Detail', 'Nama Item', 'Pegawai', 'Kuantitas', 'Subtotal'
         ])
 
-        # Write all transaction details
         for transaksi in all_transaksi:
-            # Common transaction data
             base_data = [
                 transaksi.id_transaksi,
                 transaksi.tanggal.strftime('%Y-%m-%d'),
@@ -333,7 +309,6 @@ def export_csv():
                 float(transaksi.total_harga)
             ]
             
-            # Write service details
             for detail in transaksi.detail_transaksi_layanan:
                 writer.writerow(base_data + [
                     'Layanan',
@@ -344,13 +319,12 @@ def export_csv():
                     float(detail.subtotal)
                 ])
             
-            # Write product details
             for detail in transaksi.detail_transaksi_produk:
                 writer.writerow(base_data + [
                     'Produk',
                     detail.id_detailProduk,
                     detail.produk.nama_produk,
-                    '-',  # No employee for products
+                    '-',
                     detail.kuantitas,
                     float(detail.subtotal)
                 ])
@@ -364,5 +338,6 @@ def export_csv():
             headers={"Content-Disposition": "attachment;filename=transaksi_export.csv"}
         )
     except Exception as e:
+        current_app.logger.error(f"Error during export_csv: {e}", exc_info=True)
         flash(f'Terjadi error saat membuat file CSV: {str(e)}', 'danger')
         return redirect(url_for('.list_transaksi')) 

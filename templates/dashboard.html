@@ -1,66 +1,15 @@
 {% extends 'base.html' %}
 
-{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
     <div class="row">
-        <!-- Sidebar -->
-        <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse">
-            <div class="position-sticky pt-3">
-                <ul class="nav flex-column">
-                    <li class="nav-item">
-                        <a class="nav-link active" aria-current="page" href="#">
-                            <span data-feather="home"></span>
-                            Beranda
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('kategori.list_kategori') }}">
-                            <span data-feather="file"></span>
-                            Kategori
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('layanan.list_layanan') }}">
-                            <span data-feather="shopping-cart"></span>
-                            Layanan
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('pegawai.list_pegawai') }}">
-                            <span data-feather="users"></span>
-                            Pegawai
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('produk.list_produk') }}">
-                            <span data-feather="box"></span>
-                            Produk
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('pasien.list_pasien') }}">
-                            <span data-feather="users"></span>
-                            Pasien
-                        </a>
-                    </li>
-                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('transaksi.list_transaksi') }}">
-                            <span data-feather="list"></span>
-                            Transaksi
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </nav>
-
         <!-- Main content -->
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                <h1 class="h2">Dashboard</h1>
+                <h4>Selamat Datang, {{ current_user.username }}</h4>
             </div>
-
             <h2>MENU</h2>
             <div class="row">
                 <div class="col-md-4">

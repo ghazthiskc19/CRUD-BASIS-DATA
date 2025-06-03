@@ -329,6 +329,9 @@
             </h4>
         </div>
         <nav class="nav flex-column">
+            <a class="nav-link {% if request.endpoint == 'index' %}active{% endif %}" href="{{ url_for('index') }}">
+                <i class="bi bi-house"></i> Dashboard
+            </a>
             <a class="nav-link {% if request.endpoint == 'kategori.list_kategori' %}active{% endif %}" href="{{ url_for('kategori.list_kategori') }}">
                 <i class="bi bi-grid"></i> Kategori
             </a>

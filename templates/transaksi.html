@@ -221,7 +221,6 @@
                             <option value="pasien">Nama Pasien</option>
                             <option value="tanggal">Tanggal</option>
                             <option value="bulan">Bulan</option>
-                            <option value="id">ID Transaksi</option>
                         </select>
                         <input type="text" 
                                class="form-control" 
@@ -511,7 +510,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        if (type !== 'tanggal' && type !== 'bulan' && query.length > 0 && query.length < 2) {
+        if (type !== 'tanggal' && type !== 'bulan' && type !== 'id' && query.length > 0 && query.length < 2) {
             tableBody.innerHTML = '<tr><td colspan="5" class="text-center">Ketik minimal 2 karakter...</td></tr>';
             return;
         }
