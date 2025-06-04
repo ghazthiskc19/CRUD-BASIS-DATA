@@ -21,6 +21,15 @@
         border-top-right-radius: 10px;
         border-bottom-right-radius: 10px;
     }
+    select#search-type {
+        border-top-left-radius: 10px;
+        border-bottom-left-radius: 10px;
+        border: 1px solid black;
+    }
+    .container-transaksi{
+        border: 1px solid black !important;
+        border-radius: 15px !important;
+    }
 </style>
 {% endblock %}
 
@@ -47,7 +56,7 @@
             <div class="mt-4">
                 <h4>Detail Layanan</h4>
                 <div id="layanan-container">
-                    <div class="layanan-item border p-3 mb-3">
+                    <div class="layanan-item border p-3 px-4 mb-3 container-transaksi">
                         <div class="row">
                             <div class="col-md-4">
                                 <div class="form-group">
@@ -89,7 +98,7 @@
                         </div>
                     </div>
                 </div>
-                <button type="button" class="btn btn-secondary" onclick="addLayanan()">+ Tambah Layanan</button>
+                <button type="button" class="btn btn-secondary px-4" onclick="addLayanan()">+ Tambah Layanan</button>
             </div>
     
             <!-- Product Details Section -->
@@ -99,7 +108,7 @@
                     <button type="button" class="btn btn-danger btn-sm" onclick="toggleProdukSection()" id="toggleProdukBtn">Hapus Produk</button>
                 </div>
                 <div id="produk-container">
-                    <div class="produk-item border p-3 mb-3">
+                    <div class="produk-item border p-3 mb-3 px-4 container-transaksi">
                         <div class="row">
                             <div class="col-md-4">
                                 <div class="form-group">
@@ -211,7 +220,7 @@
 
     {% else %}
     <!-- List of transactions -->
-    <div class="mt-4">
+    <div>
         <div class="mb-4 container">
             <div class="row">
                 <div class="col-9 search-bar-transaction">

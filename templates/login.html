@@ -3,6 +3,7 @@
 {% block title %}Login{% endblock %}
 {% block sidebar %} {% endblock %}
 {% block navbar %} {% endblock %}
+
 {% block global_styles %}
 {{ super() }}
 <style>
@@ -53,13 +54,13 @@
         border-width: 3px;
     }
     .form-control {
-        border-left: none;
-        border-color: #bf9a2a;
-        border-width: 3px;
+        border-left: none !important;
+        border-color: #bf9a2a !important;
+        border-width: 3px !important;
     }
     .form-control:focus {
         box-shadow: none;
-        border-color: #bf9a2a;
+        border-color: #bf9a2a !important;
     }
     .input-group:focus-within {
         box-shadow: none;

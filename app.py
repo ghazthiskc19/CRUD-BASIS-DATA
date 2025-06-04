@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from database import db
-from models import User, Pegawai, Layanan, Pasien, Transaksi, DetailTransaksiLayanan, Produk, KategoriLayanan
+from models import User, Pegawai, Layanan, Pasien, Transaksi, DetailTransaksiLayanan, Produk, KategoriLayanan, DetailTransaksiProduk
 import os
 import secrets
 
@@ -21,6 +21,105 @@ app.config['SECRET_KEY'] = secrets.token_hex(16)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mssql+pyodbc://flaskuser:database_191025@RIFQI\\MSSQLSERVER01/MyFlaskDB?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+# Context processor to inject stats into all templates
+@app.context_processor
+def inject_stats():
+    if current_user.is_authenticated:
+        from datetime import datetime, timedelta
+        from sqlalchemy import func
+        import calendar
+
+        # Get current date
+        now = datetime.now()
+        
+        # Initialize data for last 12 months
+        revenue_data = []
+        patient_data = []
+        transaction_data = []
+        for i in range(11, -1, -1):
+            # Calculate start and end of month
+            month_start = datetime(now.year, now.month, 1) - timedelta(days=i*30)
+            month_end = (month_start + timedelta(days=32)).replace(day=1) - timedelta(days=1)
+            
+            monthly_revenue = db.session.query(
+                func.sum(Transaksi.total_harga)
+            ).filter(
+                Transaksi.tanggal >= month_start,
+                Transaksi.tanggal <= month_end
+            ).scalar() or 0
+
+            monthly_patients = db.session.query(
+                func.count(Pasien.id_pasien)
+            ).filter(
+                Pasien.created_at >= month_start,
+                Pasien.created_at <= month_end
+            ).scalar() or 0
+
+            monthly_transactions = db.session.query(
+                func.count(Transaksi.id_transaksi)
+            ).filter(
+                Transaksi.tanggal >= month_start,
+                Transaksi.tanggal <= month_end
+            ).scalar() or 0
+
+            # Add to revenue data
+            revenue_data.append({
+                'month': month_start.strftime('%b'),
+                'revenue': float(monthly_revenue)
+            })
+
+            # Add to patient data
+            patient_data.append({
+                'month': month_start.strftime('%b'),
+                'patients': monthly_patients
+            })
+
+            # Add to transaction data
+            transaction_data.append({
+                'month': month_start.strftime('%b'),
+                'transactions': monthly_transactions
+            })
+
+        # Get top 3 most used services
+        top_services = db.session.query(
+            Layanan.nama_layanan,
+            func.count(DetailTransaksiLayanan.id_layanan).label('total_used')
+        ).join(
+            DetailTransaksiLayanan,
+            Layanan.id_layanan == DetailTransaksiLayanan.id_layanan
+        ).group_by(
+            Layanan.nama_layanan
+        ).order_by(
+            func.count(DetailTransaksiLayanan.id_layanan).desc()
+        ).limit(3).all()
+
+        # Get top 3 most used products
+        top_products = db.session.query(
+            Produk.nama_produk,
+            func.count(DetailTransaksiProduk.id_produk).label('total_used')
+        ).join(
+            DetailTransaksiProduk,
+            Produk.id_produk == DetailTransaksiProduk.id_produk
+        ).group_by(
+            Produk.nama_produk
+        ).order_by(
+            func.count(DetailTransaksiProduk.id_produk).desc()
+        ).limit(3).all()
+
+        stats = {
+            'total_patients': Pasien.query.count(),
+            'total_employees': Pegawai.query.count(),
+            'total_services': Layanan.query.count(),
+            'total_products': Produk.query.count(),
+            'total_transactions': Transaksi.query.count(),
+            'revenue_data': revenue_data,
+            'patient_data': patient_data,
+            'transaction_data': transaction_data,
+            'top_services': [{'name': s[0], 'count': s[1]} for s in top_services],
+            'top_products': [{'name': p[0], 'count': p[1]} for p in top_products]
+        }
+        return {'stats': stats}
+    return {'stats': {}}
 
 # Initialize Login Manager
 login_manager = LoginManager()
@@ -62,8 +161,7 @@ def index():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        # return redirect(url_for('kategori.list_kategori'))
-        return render_template('dashboard.html')
+        return render_template('dashboard.html', current_user=current_user)
     
     if request.method == 'POST':
         username = request.form['username']
@@ -74,8 +172,7 @@ def login():
             login_user(user)
             flash('Login successful!', 'success')
             next_page = request.args.get('next')
-            # return redirect(next_page or url_for('kategori.list_kategori'))
-            return render_template('dashboard.html')
+            return render_template('dashboard.html', current_user=current_user)
         else:
             flash('Invalid username or password', 'error')
     
@@ -108,8 +205,7 @@ def change_password():
         current_user.password = generate_password_hash(new_password)
         db.session.commit()
         flash('Password changed successfully!', 'success')
-        # return redirect(url_for('kategori.list_kategori'))
-        return render_template('dashboard.html')
+        return render_template('dashboard.html', current_user=current_user)
     
     return render_template('change_password.html')
 
@@ -140,7 +236,7 @@ def change_username():
         current_user.username = new_username
         db.session.commit()
         flash('Username changed successfully!', 'success')
-        return render_template('dashboard.html')
+        return render_template('dashboard.html', current_user=current_user)
     
     return render_template('change_username.html')
 
