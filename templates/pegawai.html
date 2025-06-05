@@ -9,7 +9,7 @@
     <!-- Form for adding/editing pegawai -->
      <div class="wrapper-edit-update">
 
-         <form method="POST" action="{% if action == 'add' %}{{ url_for('pegawai.add_pegawai') }}{% else %}{{ url_for('pegawai.edit_pegawai', id_pegawai=pegawai.id_pegawai) }}{% endif %}">
+         <form method="POST" action="{% if action == 'add' %}{{ url_for('pegawai.add_pegawai') }}{% else %}{{ url_for('pegawai.edit_pegawai', id_pegawai=pegawai.id_pegawai) }}{% endif %}" id="pegawaiForm">
              <div class="form-group">
                  <label for="nama">Nama Pegawai</label>
                  <input type="text" 
@@ -27,7 +27,14 @@
                         id="no_hp" 
                         name="no_hp" 
                         value="{{ pegawai.no_hp if action == 'edit' else '' }}"
+                        pattern="^(08[0-9]{8,11}|0[1-9][0-9]{7,10})$"
+                        title="Masukkan nomor telepon yang valid (contoh: 08123456789 atau 0211234567)"
+                        oninput="this.value = this.value.replace(/[^0-9]/g, ''); validatePhoneNumber(this);"
                         required>
+                 <small class="form-text text-muted">Format: 08xxxxxxxxxx (HP) atau 0xx xxxxxxx (Telepon Rumah)</small>
+                 <div class="invalid-feedback" id="phoneError">
+                     Nomor telepon tidak valid. Gunakan format: 08xxxxxxxxxx (HP) atau 0xx xxxxxxx (Telepon Rumah)
+                 </div>
              </div>
      
              <div class="form-group mt-3">
@@ -47,6 +54,48 @@
              <a href="{{ url_for('pegawai.list_pegawai') }}" class="btn btn-secondary mt-3">Kembali</a>
          </form>
      </div>
+
+     <script>
+     function validatePhoneNumber(input) {
+         const phoneNumber = input.value;
+         const phoneError = document.getElementById('phoneError');
+         
+         // Remove any non-digit characters
+         const cleanNumber = phoneNumber.replace(/\D/g, '');
+         
+         // Check if it's a mobile number (starts with 08)
+         if (cleanNumber.startsWith('08')) {
+             if (cleanNumber.length < 10 || cleanNumber.length > 13) {
+                 input.setCustomValidity('Nomor HP harus 10-13 digit');
+                 phoneError.style.display = 'block';
+                 return false;
+             }
+         } 
+         // Check if it's a landline number (starts with 0 but not 08)
+         else if (cleanNumber.startsWith('0') && !cleanNumber.startsWith('08')) {
+             if (cleanNumber.length < 9 || cleanNumber.length > 12) {
+                 input.setCustomValidity('Nomor telepon rumah harus 9-12 digit');
+                 phoneError.style.display = 'block';
+                 return false;
+             }
+         } else {
+             input.setCustomValidity('Nomor harus dimulai dengan 08 (HP) atau kode area (telepon rumah)');
+             phoneError.style.display = 'block';
+             return false;
+         }
+         
+         input.setCustomValidity('');
+         phoneError.style.display = 'none';
+         return true;
+     }
+
+     document.getElementById('pegawaiForm').addEventListener('submit', function(e) {
+         const phoneInput = document.getElementById('no_hp');
+         if (!validatePhoneNumber(phoneInput)) {
+             e.preventDefault();
+         }
+     });
+     </script>
     {% else %}
     <!-- List of employees -->
     <div>

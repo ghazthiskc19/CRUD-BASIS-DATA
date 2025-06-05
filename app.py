@@ -175,7 +175,6 @@ def login():
             return render_template('dashboard.html', current_user=current_user)
         else:
             flash('Invalid username or password', 'error')
-    
     return render_template('login.html')
 
 @app.route('/change-password', methods=['GET', 'POST'])

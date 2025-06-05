@@ -10,7 +10,7 @@
     <div class="wrapper-edit-update">
 
         <!-- Form for adding/editing pasien -->
-        <form method="POST" action="{% if action == 'add' %}{{ url_for('pasien.add_pasien') }}{% else %}{{ url_for('pasien.edit_pasien', id_pasien=pasien.id_pasien) }}{% endif %}" class="mt-4">
+        <form method="POST" action="{% if action == 'add' %}{{ url_for('pasien.add_pasien') }}{% else %}{{ url_for('pasien.edit_pasien', id_pasien=pasien.id_pasien) }}{% endif %}" class="mt-4" id="pasienForm">
             <div class="form-group">
                 <label for="nama">Nama Pasien</label>
                 <input type="text" 
@@ -28,7 +28,14 @@
                        id="no_hp" 
                        name="no_hp" 
                        value="{{ pasien.no_hp if action == 'edit' else '' }}"
+                       pattern="^(08[0-9]{8,11}|0[1-9][0-9]{7,10})$"
+                       title="Masukkan nomor telepon yang valid (contoh: 08123456789 atau 0211234567)"
+                       oninput="this.value = this.value.replace(/[^0-9]/g, ''); validatePhoneNumber(this);"
                        required>
+                <small class="form-text text-muted">Format: 08xxxxxxxxxx (HP) atau 0xx xxxxxxx (Telepon Rumah)</small>
+                <div class="invalid-feedback" id="phoneError">
+                    Nomor telepon tidak valid. Gunakan format: 08xxxxxxxxxx (HP) atau 0xx xxxxxxx (Telepon Rumah)
+                </div>
             </div>
     
             <div class="form-group mt-3">
@@ -55,6 +62,48 @@
             </button>
             <a href="{{ url_for('pasien.list_pasien') }}" class="btn btn-secondary mt-3">Kembali</a>
         </form>
+
+        <script>
+        function validatePhoneNumber(input) {
+            const phoneNumber = input.value;
+            const phoneError = document.getElementById('phoneError');
+            
+            // Remove any non-digit characters
+            const cleanNumber = phoneNumber.replace(/\D/g, '');
+            
+            // Check if it's a mobile number (starts with 08)
+            if (cleanNumber.startsWith('08')) {
+                if (cleanNumber.length < 10 || cleanNumber.length > 13) {
+                    input.setCustomValidity('Nomor HP harus 10-13 digit');
+                    phoneError.style.display = 'block';
+                    return false;
+                }
+            } 
+            // Check if it's a landline number (starts with 0 but not 08)
+            else if (cleanNumber.startsWith('0') && !cleanNumber.startsWith('08')) {
+                if (cleanNumber.length < 9 || cleanNumber.length > 12) {
+                    input.setCustomValidity('Nomor telepon rumah harus 9-12 digit');
+                    phoneError.style.display = 'block';
+                    return false;
+                }
+            } else {
+                input.setCustomValidity('Nomor harus dimulai dengan 08 (HP) atau kode area (telepon rumah)');
+                phoneError.style.display = 'block';
+                return false;
+            }
+            
+            input.setCustomValidity('');
+            phoneError.style.display = 'none';
+            return true;
+        }
+
+        document.getElementById('pasienForm').addEventListener('submit', function(e) {
+            const phoneInput = document.getElementById('no_hp');
+            if (!validatePhoneNumber(phoneInput)) {
+                e.preventDefault();
+            }
+        });
+        </script>
     </div>
     {% else %}
     <!-- List of patients -->
@@ -82,7 +131,7 @@
                             <th>Aksi</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="pasien">
                         {% for pasien in pasien_list %}
                         <tr>
                             <td>{{ pasien.id_pasien }}</td>
@@ -107,6 +156,70 @@
             </div>
         </div>
     </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInputPasien = document.getElementById('live-search-input');
+        const tableBodyPasien = document.getElementById('pasien');
+        let debounceTimerPasien;
+
+        if (searchInputPasien && tableBodyPasien) {
+            searchInputPasien.addEventListener('input', function() {
+                const query = this.value.trim();
+                clearTimeout(debounceTimerPasien);
+
+                debounceTimerPasien = setTimeout(() => {               
+                    if (query.length > 0 && query.length < 2) { 
+                        tableBodyPasien.innerHTML = '<tr><td colspan="6" class="text-center">Ketik minimal 2 karakter...</td></tr>';
+                        return;
+                    }
+
+                    tableBodyPasien.innerHTML = '<tr><td colspan="6" class="text-center">Mencari...</td></tr>';
+                    fetch(`{{ url_for('pasien.live_search') }}?q=${encodeURIComponent(query)}`)
+                        .then(response => response.json())
+                        .then(data => populateTable(data, false))
+                        .catch(error => {
+                            console.error('Error:', error);
+                            tableBodyPasien.innerHTML = '<tr><td colspan="6" class="text-center">Oops! Terjadi kesalahan.</td></tr>';
+                        });
+                }, 350);
+            });
+        }
+
+        function populateTable(data, isFullList) {
+            tableBodyPasien.innerHTML = '';
+
+            if (data.length === 0) {
+                const message = isFullList ? 'Belum ada data pasien.' : 'Pasien tidak ditemukan.';
+                tableBodyPasien.innerHTML = `<tr><td colspan="6" class="text-center">${message}</td></tr>`;
+                return;
+            }
+            data.forEach(pasien => {
+                const row = `
+                    <tr>
+                        <td>${pasien.id_pasien}</td>
+                        <td>${pasien.nama}</td>
+                        <td>${pasien.no_hp}</td>
+                        <td>${pasien.alamat}</td>
+                        <td>${pasien.tgl_lahir}</td>
+                        <td>
+                            <a href="/pasien/edit/${pasien.id_pasien}" class="btn-action btn-edit" title="Edit">
+                                <i class="bi bi-pencil-square"></i>
+                            </a>
+                            <form method="POST" action="/pasien/delete/${pasien.id_pasien}" class="d-inline">
+                                <button type="submit" class="btn-action btn-delete" title="Hapus" 
+                                        onclick="return confirm('Apakah Anda yakin ingin menghapus pasien ini?')">
+                                    <i class="bi bi-trash-fill"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                `;
+                tableBodyPasien.insertAdjacentHTML('beforeend', row);
+            });
+        }
+    });
+    </script>
     {% endif %}
 </div>
 {% endblock %} 

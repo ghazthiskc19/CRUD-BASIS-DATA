@@ -1,10 +1,12 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, Response
+from flask import Blueprint, render_template, request, redirect, url_for, flash, Response, jsonify
 from models import Pasien
 from database import db
 from datetime import datetime
 from flask_login import login_required
 import csv
 import io
+from sqlalchemy import or_
+
 pasien_bp = Blueprint('pasien', __name__)
 
 @pasien_bp.route('/pasien')
@@ -113,4 +115,32 @@ def export_csv():
         )
     except Exception as e:
         flash(f'Terjadi error saat membuat file CSV: {str(e)}', 'danger')
-        return redirect(url_for('.list_pasien')) 
+        return redirect(url_for('.list_pasien'))
+
+@pasien_bp.route('/live-search')
+def live_search():
+    query = request.args.get('q', '')
+    if len(query) < 2:
+        results = Pasien.query.all()
+        return jsonify([{
+            'id_pasien': p.id_pasien,
+            'nama': p.nama,
+            'no_hp': p.no_hp,
+            'alamat': p.alamat,
+            'tgl_lahir': p.tgl_lahir.strftime('%Y-%m-%d') if p.tgl_lahir else ''
+        } for p in results])
+    
+    results = Pasien.query.filter(
+        or_(
+            Pasien.nama.ilike(f'%{query}%'),
+            Pasien.alamat.ilike(f'%{query}%')
+        )
+    ).all()
+    
+    return jsonify([{
+        'id_pasien': p.id_pasien,
+        'nama': p.nama,
+        'no_hp': p.no_hp,
+        'alamat': p.alamat,
+        'tgl_lahir': p.tgl_lahir.strftime('%Y-%m-%d') if p.tgl_lahir else ''
+    } for p in results]) 
