@@ -47,7 +47,13 @@ pip install -r requirements.txt
     - Use SSMS to connect to your local SQL Server instance.
 3.  **Create the Database**:
     - Using SSMS or another tool, connect to your local SQL Server instance.
-    - Create a new database named `MyFlaskDB`.
+    - You can run the `schema.sql` file to create all the necessary tables. This file contains the complete database schema with all required tables and their relationships.
+    - Optionally, you can run the `dummy_data.sql` file to populate the database with sample data. This includes test users, patients, employees, services, products, and transactions.
+    - To run these SQL files in SSMS:
+      1. Open SSMS and connect to your SQL Server instance
+      2. Open the `schema.sql` file in SSMS
+      3. Click "Execute" or press F5 to run the script
+      4. Repeat the same process for `dummy_data.sql` if you want to add sample data
 4.  **Create a SQL Server User (Optional but Recommended)**:
     - In SSMS, expand Security -> Logins.
     - Right-click Logins and select "New Login...".
