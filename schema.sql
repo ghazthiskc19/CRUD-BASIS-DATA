@@ -1,3 +1,15 @@
+-- Drop the database if it exists
+USE master;
+GO
+
+IF EXISTS (SELECT name FROM sys.databases WHERE name = 'MyFlaskDB')
+BEGIN
+    ALTER DATABASE MyFlaskDB SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+    DROP DATABASE MyFlaskDB;
+END
+GO
+
+-- Create new database
 CREATE DATABASE MyFlaskDB;
 GO
 
@@ -29,6 +41,7 @@ CREATE TABLE pasien (
     no_hp NVARCHAR(20),
     alamat NVARCHAR(MAX),
     tgl_lahir DATE,
+    gender BIT NOT NULL,
     created_at DATETIME DEFAULT GETDATE(),
     updated_at DATETIME DEFAULT GETDATE()
 );
@@ -39,6 +52,7 @@ CREATE TABLE pegawai (
     nama NVARCHAR(100) NOT NULL,
     no_hp NVARCHAR(20),
     jabatan NVARCHAR(50),
+    gender BIT NOT NULL,
     created_at DATETIME DEFAULT GETDATE(),
     updated_at DATETIME DEFAULT GETDATE()
 );

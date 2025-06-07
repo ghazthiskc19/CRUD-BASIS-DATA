@@ -1,6 +1,6 @@
 from datetime import date
 from sqlalchemy.orm import relationship
-from sqlalchemy import Column, Integer, String, Text, Date, DECIMAL, ForeignKey, DateTime, func
+from sqlalchemy import Column, Integer, String, Text, Date, DECIMAL, ForeignKey, DateTime, func, Boolean
 from flask_login import UserMixin
 from database import db
 
@@ -17,6 +17,7 @@ class Pasien(db.Model):
     no_hp = Column(String(20))
     alamat = Column(Text)
     tgl_lahir = Column(Date)
+    gender = Column(Boolean, nullable=False) 
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
     transaksi = relationship('Transaksi', backref='pasien', cascade='all, delete-orphan')
@@ -27,6 +28,7 @@ class Pegawai(db.Model):
     nama = Column(String(100), nullable=False)
     no_hp = Column(String(20))
     jabatan = Column(String(50))
+    gender = Column(Boolean, nullable=False)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
     detail_transaksi_layanan = relationship('DetailTransaksiLayanan', backref='pegawai', cascade='all, delete-orphan')

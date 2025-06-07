@@ -1,12 +1,6 @@
 USE MyFlaskDB;
 GO
 
--- Insert Users
-INSERT INTO users (username, password) VALUES
-('admin', 'pbkdf2:sha256:600000$your_hashed_password_here'),
-('staff1', 'pbkdf2:sha256:600000$your_hashed_password_here');
-GO
-
 -- Insert Kategori Layanan
 INSERT INTO kategori_layanan (nama_kategori) VALUES
 ('Perawatan Rambut'),
@@ -28,12 +22,12 @@ INSERT INTO layanan (nama_layanan, id_kategori) VALUES
 GO
 
 -- Insert Pegawai
-INSERT INTO pegawai (nama, no_hp, jabatan) VALUES
-('Budi Santoso', '081234567890', 'Hair Stylist'),
-('Siti Aminah', '082345678901', 'Beautician'),
-('Ahmad Rizki', '083456789012', 'Massage Therapist'),
-('Dewi Lestari', '084567890123', 'Nail Artist'),
-('Rudi Hartono', '085678901234', 'Hair Colorist');
+INSERT INTO pegawai (nama, no_hp, jabatan, gender) VALUES
+('Budi Santoso', '081234567890', 'Hair Stylist', 0),      -- Laki-laki
+('Siti Aminah', '082345678901', 'Beautician', 1),         -- Perempuan
+('Ahmad Rizki', '083456789012', 'Massage Therapist', 0),  -- Laki-laki
+('Dewi Lestari', '084567890123', 'Nail Artist', 1),       -- Perempuan
+('Rudi Hartono', '085678901234', 'Hair Colorist', 0);     -- Laki-laki
 GO
 
 -- Insert Layanan Pegawai
@@ -60,72 +54,72 @@ INSERT INTO produk (nama_produk, harga, stok) VALUES
 ('Nail Care Set', 130000, 25);
 GO
 
--- Insert Pasien with registration dates
-INSERT INTO pasien (nama, no_hp, alamat, tgl_lahir, created_at) VALUES
+-- Insert Pasien with registration dates and gender
+INSERT INTO pasien (nama, no_hp, alamat, tgl_lahir, gender, created_at) VALUES
 -- July 2024
-('Ani Wijaya', '081234567891', 'Jl. Merdeka No. 1', '1990-05-15', '2024-07-03 09:15:00'),
-('Budi Pratama', '082345678902', 'Jl. Sudirman No. 2', '1985-08-20', '2024-07-15 14:30:00'),
-('Citra Dewi', '083456789013', 'Jl. Gatot Subroto No. 3', '1995-03-10', '2024-07-28 11:45:00'),
+('Ani Wijaya', '081234567891', 'Jl. Merdeka No. 1', '1990-05-15', 1, '2024-07-03 09:15:00'),
+('Budi Pratama', '082345678902', 'Jl. Sudirman No. 2', '1985-08-20', 0, '2024-07-15 14:30:00'),
+('Citra Dewi', '083456789013', 'Jl. Gatot Subroto No. 3', '1995-03-10', 1, '2024-07-28 11:45:00'),
 
 -- August 2024
-('Dian Kusuma', '084567890124', 'Jl. Thamrin No. 4', '1988-11-25', '2024-08-05 10:20:00'),
-('Eko Prasetyo', '085678901235', 'Jl. Asia Afrika No. 5', '1992-07-30', '2024-08-18 15:40:00'),
-('Fina Putri', '086789012346', 'Jl. Diponegoro No. 6', '1993-04-18', '2024-08-25 13:10:00'),
+('Dian Kusuma', '084567890124', 'Jl. Thamrin No. 4', '1988-11-25', 1, '2024-08-05 10:20:00'),
+('Eko Prasetyo', '085678901235', 'Jl. Asia Afrika No. 5', '1992-07-30', 0, '2024-08-18 15:40:00'),
+('Fina Putri', '086789012346', 'Jl. Diponegoro No. 6', '1993-04-18', 1, '2024-08-25 13:10:00'),
 
 -- September 2024
-('Gita Sari', '087890123457', 'Jl. Veteran No. 7', '1991-09-22', '2024-09-02 09:30:00'),
-('Hadi Wijaya', '088901234568', 'Jl. Pahlawan No. 8', '1987-12-05', '2024-09-15 16:20:00'),
-('Indra Nugraha', '089012345679', 'Jl. Imam Bonjol No. 9', '1994-06-12', '2024-09-28 11:15:00'),
+('Gita Sari', '087890123457', 'Jl. Veteran No. 7', '1991-09-22', 1, '2024-09-02 09:30:00'),
+('Hadi Wijaya', '088901234568', 'Jl. Pahlawan No. 8', '1987-12-05', 0, '2024-09-15 16:20:00'),
+('Indra Nugraha', '089012345679', 'Jl. Imam Bonjol No. 9', '1994-06-12', 0, '2024-09-28 11:15:00'),
 
 -- October 2024
-('Joko Susilo', '089123456780', 'Jl. Diponegoro No. 10', '1989-02-28', '2024-10-05 14:45:00'),
-('Kartika Dewi', '089234567891', 'Jl. Sudirman No. 11', '1996-08-15', '2024-10-18 10:30:00'),
-('Lina Wijaya', '089345678902', 'Jl. Gatot Subroto No. 12', '1993-11-20', '2024-10-25 15:50:00'),
+('Joko Susilo', '089123456780', 'Jl. Diponegoro No. 10', '1989-02-28', 0, '2024-10-05 14:45:00'),
+('Kartika Dewi', '089234567891', 'Jl. Sudirman No. 11', '1996-08-15', 1, '2024-10-18 10:30:00'),
+('Lina Wijaya', '089345678902', 'Jl. Gatot Subroto No. 12', '1993-11-20', 1, '2024-10-25 15:50:00'),
 
 -- November 2024
-('Mario Kusuma', '089456789013', 'Jl. Thamrin No. 13', '1990-04-05', '2024-11-03 09:20:00'),
-('Nina Putri', '089567890124', 'Jl. Asia Afrika No. 14', '1995-09-18', '2024-11-15 13:40:00'),
-('Oscar Pratama', '089678901235', 'Jl. Veteran No. 15', '1988-07-25', '2024-11-28 16:10:00'),
+('Mario Kusuma', '089456789013', 'Jl. Thamrin No. 13', '1990-04-05', 0, '2024-11-03 09:20:00'),
+('Nina Putri', '089567890124', 'Jl. Asia Afrika No. 14', '1995-09-18', 1, '2024-11-15 13:40:00'),
+('Oscar Pratama', '089678901235', 'Jl. Veteran No. 15', '1988-07-25', 0, '2024-11-28 16:10:00'),
 
 -- December 2024
-('Putri Sari', '089789012346', 'Jl. Pahlawan No. 16', '1992-01-30', '2024-12-05 10:15:00'),
-('Rudi Hartono', '089890123457', 'Jl. Imam Bonjol No. 17', '1987-03-12', '2024-12-18 14:30:00'),
-('Siti Aminah', '089901234568', 'Jl. Diponegoro No. 18', '1994-10-08', '2024-12-25 11:45:00'),
+('Putri Sari', '089789012346', 'Jl. Pahlawan No. 16', '1992-01-30', 1, '2024-12-05 10:15:00'),
+('Rudi Hartono', '089890123457', 'Jl. Imam Bonjol No. 17', '1987-03-12', 0, '2024-12-18 14:30:00'),
+('Siti Aminah', '089901234568', 'Jl. Diponegoro No. 18', '1994-10-08', 1, '2024-12-25 11:45:00'),
 
 -- January 2025
-('Tono Wijaya', '089012345679', 'Jl. Sudirman No. 19', '1991-12-15', '2025-01-05 15:20:00'),
-('Umi Kusuma', '089123456780', 'Jl. Gatot Subroto No. 20', '1996-05-22', '2025-01-18 09:30:00'),
-('Vina Putri', '089234567891', 'Jl. Thamrin No. 21', '1993-08-28', '2025-01-25 13:50:00'),
+('Tono Wijaya', '089012345679', 'Jl. Sudirman No. 19', '1991-12-15', 0, '2025-01-05 15:20:00'),
+('Umi Kusuma', '089123456780', 'Jl. Gatot Subroto No. 20', '1996-05-22', 1, '2025-01-18 09:30:00'),
+('Vina Putri', '089234567891', 'Jl. Thamrin No. 21', '1993-08-28', 1, '2025-01-25 13:50:00'),
 
 -- February 2025
-('Wahyu Pratama', '089345678902', 'Jl. Asia Afrika No. 22', '1989-11-10', '2025-02-03 16:15:00'),
-('Xena Sari', '089456789013', 'Jl. Veteran No. 23', '1995-02-18', '2025-02-15 10:40:00'),
-('Yudi Hartono', '089567890124', 'Jl. Pahlawan No. 24', '1990-07-25', '2025-02-28 14:20:00'),
+('Wahyu Pratama', '089345678902', 'Jl. Asia Afrika No. 22', '1989-11-10', 0, '2025-02-03 16:15:00'),
+('Xena Sari', '089456789013', 'Jl. Veteran No. 23', '1995-02-18', 1, '2025-02-15 10:40:00'),
+('Yudi Hartono', '089567890124', 'Jl. Pahlawan No. 24', '1990-07-25', 0, '2025-02-28 14:20:00'),
 
 -- March 2025
-('Zara Aminah', '089678901235', 'Jl. Imam Bonjol No. 25', '1994-04-05', '2025-03-05 11:30:00'),
-('Ahmad Rizki', '089789012346', 'Jl. Diponegoro No. 26', '1988-09-12', '2025-03-18 15:45:00'),
-('Bella Kusuma', '089890123457', 'Jl. Sudirman No. 27', '1992-12-20', '2025-03-25 09:15:00'),
+('Zara Aminah', '089678901235', 'Jl. Imam Bonjol No. 25', '1994-04-05', 1, '2025-03-05 11:30:00'),
+('Ahmad Rizki', '089789012346', 'Jl. Diponegoro No. 26', '1988-09-12', 0, '2025-03-18 15:45:00'),
+('Bella Kusuma', '089890123457', 'Jl. Sudirman No. 27', '1992-12-20', 1, '2025-03-25 09:15:00'),
 
 -- April 2025
-('Candra Putra', '089901234568', 'Jl. Gatot Subroto No. 28', '1996-03-15', '2025-04-05 13:20:00'),
-('Dewi Lestari', '089012345679', 'Jl. Thamrin No. 29', '1993-06-28', '2025-04-18 16:30:00'),
-('Erik Wijaya', '089123456780', 'Jl. Asia Afrika No. 30', '1991-10-05', '2025-04-25 10:45:00'),
+('Candra Putra', '089901234568', 'Jl. Imam Bonjol No. 28', '1996-03-15', 0, '2025-04-05 13:20:00'),
+('Dewi Lestari', '089012345679', 'Jl. Thamrin No. 29', '1993-06-28', 1, '2025-04-18 16:30:00'),
+('Erik Wijaya', '089123456780', 'Jl. Asia Afrika No. 30', '1991-10-05', 0, '2025-04-25 10:45:00'),
 
 -- May 2025
-('Fina Pratama', '089234567891', 'Jl. Veteran No. 31', '1995-01-18', '2025-05-03 14:15:00'),
-('Gunawan Sari', '089345678902', 'Jl. Pahlawan No. 32', '1989-08-22', '2025-05-15 11:30:00'),
-('Hani Aminah', '089456789013', 'Jl. Imam Bonjol No. 33', '1994-05-30', '2025-05-28 15:40:00'),
+('Fina Pratama', '089234567891', 'Jl. Veteran No. 31', '1995-01-18', 1, '2025-05-03 14:15:00'),
+('Gunawan Sari', '089345678902', 'Jl. Pahlawan No. 32', '1989-08-22', 0, '2025-05-15 11:30:00'),
+('Hani Aminah', '089456789013', 'Jl. Imam Bonjol No. 33', '1994-05-30', 1, '2025-05-28 15:40:00'),
 
 -- June 2025
-('Irfan Rizki', '089567890124', 'Jl. Diponegoro No. 34', '1992-11-12', '2025-06-05 09:25:00'),
-('Jasmine Kusuma', '089678901235', 'Jl. Sudirman No. 35', '1996-02-25', '2025-06-18 13:35:00'),
-('Kevin Putra', '089789012346', 'Jl. Gatot Subroto No. 36', '1993-07-08', '2025-06-25 16:45:00'),
+('Irfan Rizki', '089567890124', 'Jl. Diponegoro No. 34', '1992-11-12', 0, '2025-06-05 09:25:00'),
+('Jasmine Kusuma', '089678901235', 'Jl. Sudirman No. 35', '1996-02-25', 1, '2025-06-18 13:35:00'),
+('Kevin Putra', '089789012346', 'Jl. Gatot Subroto No. 36', '1993-07-08', 0, '2025-06-25 16:45:00'),
 
 -- July 2025
-('Lina Wijaya', '089890123457', 'Jl. Thamrin No. 37', '1991-04-15', '2025-07-03 10:20:00'),
-('Mario Pratama', '089901234568', 'Jl. Asia Afrika No. 38', '1995-09-28', '2025-07-15 14:30:00'),
-('Nina Sari', '089012345679', 'Jl. Veteran No. 39', '1990-12-05', '2025-07-25 11:40:00');
+('Lina Wijaya', '089890123457', 'Jl. Thamrin No. 37', '1991-04-15', 1, '2025-07-03 10:20:00'),
+('Mario Pratama', '089901234568', 'Jl. Asia Afrika No. 38', '1995-09-28', 0, '2025-07-15 14:30:00'),
+('Nina Sari', '089012345679', 'Jl. Veteran No. 39', '1990-12-05', 1, '2025-07-25 11:40:00');
 GO
 
 -- Insert Transaksi and Details (July 2024 - July 2025)

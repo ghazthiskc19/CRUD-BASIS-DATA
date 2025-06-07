@@ -47,6 +47,15 @@
                      <option value="Terapis" {% if action == 'edit' and pegawai.jabatan == 'Terapis' %}selected{% endif %}>Terapis</option>
                  </select>
              </div>
+
+             <div class="form-group mt-3">
+                 <label for="gender">Jenis Kelamin</label>
+                 <select class="form-control" id="gender" name="gender" required>
+                     <option value="">Pilih Jenis Kelamin</option>
+                     <option value="true" {% if action == 'edit' and pegawai.gender %}selected{% endif %}>Perempuan</option>
+                     <option value="false" {% if action == 'edit' and not pegawai.gender %}selected{% endif %}>Laki-laki</option>
+                 </select>
+             </div>
      
              <button type="submit" class="btn btn-primary mt-3">
                  {% if action == 'add' %}Tambah{% else %}Update{% endif %}
@@ -118,6 +127,7 @@
                             <th>Nama</th>
                             <th>No. HP</th>
                             <th>Jabatan</th>
+                            <th>Jenis Kelamin</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
@@ -128,6 +138,7 @@
                             <td>{{ pegawai.nama }}</td>
                             <td>{{ pegawai.no_hp }}</td>
                             <td>{{ pegawai.jabatan }}</td>
+                            <td>{{ 'Perempuan' if pegawai.gender else 'Laki-laki' }}</td>
                             <td>
                                 <a href="{{ url_for('pegawai.edit_pegawai', id_pegawai=pegawai.id_pegawai) }}" class="btn-action btn-edit">
                                     <i class="bi bi-pencil-square"></i>
@@ -193,6 +204,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <td>${pegawai.nama}</td>
                     <td>${pegawai.no_hp}</td>
                     <td>${pegawai.jabatan}</td>
+                    <td>${pegawai.gender === 'Perempuan' ? 'Perempuan' : 'Laki-laki'}</td>
                     <td>
                         <a href="/pegawai/edit/${pegawai.id_pegawai}" class="btn-action btn-edit" title="Edit">
                             <i class="bi bi-pencil-square"></i>

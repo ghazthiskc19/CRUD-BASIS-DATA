@@ -25,7 +25,8 @@ def add_pasien():
                 nama=request.form['nama'],
                 no_hp=request.form['no_hp'],
                 alamat=request.form['alamat'],
-                tgl_lahir=tgl_lahir
+                tgl_lahir=tgl_lahir,
+                gender=request.form['gender'] == 'true'  
             )
             db.session.add(pasien)
             db.session.commit()
@@ -53,6 +54,7 @@ def edit_pasien(id_pasien):
             pasien.no_hp = request.form['no_hp']
             pasien.alamat = request.form['alamat']
             pasien.tgl_lahir = tgl_lahir
+            pasien.gender = request.form['gender'] == 'true'  # Convert string 'true'/'false' to boolean
             
             db.session.commit()
             flash('Data pasien berhasil diperbarui!', 'success')
@@ -92,7 +94,7 @@ def export_csv():
         
         output = io.StringIO()
         writer = csv.writer(output)
-        headers = ['id_pasien', 'nama', 'no_hp', 'alamat', 'tgl_lahir']
+        headers = ['id_pasien', 'nama', 'no_hp', 'alamat', 'tgl_lahir', 'gender']
         writer.writerow(headers)
 
         for pasien in all_data:
@@ -101,7 +103,8 @@ def export_csv():
                 pasien.nama,
                 pasien.no_hp,
                 pasien.alamat,
-                pasien.tgl_lahir.strftime('%Y-%m-%d')
+                pasien.tgl_lahir.strftime('%Y-%m-%d'),
+                'Perempuan' if pasien.gender else 'Laki-laki'
             ]
             writer.writerow(row)
         
@@ -127,7 +130,8 @@ def live_search():
             'nama': p.nama,
             'no_hp': p.no_hp,
             'alamat': p.alamat,
-            'tgl_lahir': p.tgl_lahir.strftime('%Y-%m-%d') if p.tgl_lahir else ''
+            'tgl_lahir': p.tgl_lahir.strftime('%Y-%m-%d') if p.tgl_lahir else '',
+            'gender': 'Perempuan' if p.gender else 'Laki-laki'
         } for p in results])
     
     results = Pasien.query.filter(
@@ -142,5 +146,6 @@ def live_search():
         'nama': p.nama,
         'no_hp': p.no_hp,
         'alamat': p.alamat,
-        'tgl_lahir': p.tgl_lahir.strftime('%Y-%m-%d') if p.tgl_lahir else ''
+        'tgl_lahir': p.tgl_lahir.strftime('%Y-%m-%d') if p.tgl_lahir else '',
+        'gender': 'Perempuan' if p.gender else 'Laki-laki'
     } for p in results]) 

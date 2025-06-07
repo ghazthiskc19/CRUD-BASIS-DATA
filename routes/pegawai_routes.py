@@ -21,6 +21,7 @@ def add_pegawai():
         nama = request.form['nama']
         no_hp = request.form['no_hp']
         jabatan = request.form['jabatan']
+        gender = request.form['gender'] == 'true'  # Convert string 'true'/'false' to boolean
         
         # Check if pegawai with same name already exists
         existing_pegawai = Pegawai.query.filter_by(nama=nama).first()
@@ -31,7 +32,8 @@ def add_pegawai():
         new_pegawai = Pegawai(
             nama=nama,
             no_hp=no_hp,
-            jabatan=jabatan
+            jabatan=jabatan,
+            gender=gender
         )
         
         try:
@@ -55,6 +57,7 @@ def edit_pegawai(id_pegawai):
         nama = request.form['nama']
         no_hp = request.form['no_hp']
         jabatan = request.form['jabatan']
+        gender = request.form['gender'] == 'true'  # Convert string 'true'/'false' to boolean
         
         # Check if another pegawai with same name exists
         existing_pegawai = Pegawai.query.filter(
@@ -70,6 +73,7 @@ def edit_pegawai(id_pegawai):
             pegawai.nama = nama
             pegawai.no_hp = no_hp
             pegawai.jabatan = jabatan
+            pegawai.gender = gender
             pegawai.updated_at = datetime.utcnow()
             
             db.session.commit()
@@ -114,7 +118,8 @@ def live_search():
             'id_pegawai': pegawai.id_pegawai,
             'nama': pegawai.nama,
             'no_hp': pegawai.no_hp,
-            'jabatan': pegawai.jabatan
+            'jabatan': pegawai.jabatan,
+            'gender': 'Perempuan' if pegawai.gender else 'Laki-laki'
         } for pegawai in list_pegawai]
         
         return jsonify(results)
@@ -135,7 +140,7 @@ def export_csv():
         
         output = io.StringIO()
         writer = csv.writer(output)
-        headers = ['id_pegawai', 'nama', 'no_hp', 'jabatan']
+        headers = ['id_pegawai', 'nama', 'no_hp', 'jabatan', 'gender']
         writer.writerow(headers)
 
         for pegawai in all_data:
@@ -143,7 +148,8 @@ def export_csv():
                 pegawai.id_pegawai,
                 pegawai.nama,
                 pegawai.no_hp,
-                pegawai.jabatan
+                pegawai.jabatan,
+                'Perempuan' if pegawai.gender else 'Laki-laki'
             ]
             writer.writerow(row)
         
