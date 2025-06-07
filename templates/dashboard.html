@@ -5,21 +5,22 @@
 {{ super() }}
 <style>
     .card-dasboard {
-        padding: 12px 18px;
         border-radius: 10px;
-        height: 100%;
     }
     .statistics-card .card-dasboard {
         height: auto;
     }
     .chart-container {
-        height: 250px;
+        height: 300px;
         width: 100%;
     }
     .card-body {
         height: 100%;
         display: flex;
         flex-direction: column;
+    }
+    .statistics-card .card-body {
+        padding: 12px 18px !important;
     }
     .chart-wrapper {
         flex: 1;
@@ -29,7 +30,18 @@
         height: 70px;
         background-color: #FFCD38;
         border-radius: 10px;
-        margin: -10px 10px -10px -10px;
+        margin-right: 10px;
+    }
+    @media (max-width: 768px) {
+        .statistics-card .card-body i.fs-1 {
+            font-size: 2rem !important;
+        }
+        .statistics-card .card-body h7 {
+            font-size: 0.8rem;
+        }
+        .statistics-card .card-body h2 {
+            font-size: 1.5rem;
+        }
     }
 </style>
 {% endblock %}
@@ -44,8 +56,8 @@
             </div>
 
             <!-- Statistics Cards -->
-            <div class="row mb-4 statistics-card">
-                <div class="col">
+            <div class="row mb-4 statistics-card g-3">
+                <div class="col-12 col-sm-6 col-md-4 col-lg">
                     <div class="card shadow bg-black card-dasboard">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
@@ -59,7 +71,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col">
+                <div class="col-12 col-sm-6 col-md-4 col-lg">
                     <div class="card shadow bg-black text-white card-dasboard">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
@@ -73,7 +85,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col">
+                <div class="col-12 col-sm-6 col-md-4 col-lg">
                     <div class="card shadow bg-black text-white card-dasboard">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
@@ -87,7 +99,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col">
+                <div class="col-12 col-sm-6 col-md-4 col-lg">
                     <div class="card shadow bg-black text-white card-dasboard">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
@@ -96,12 +108,12 @@
                                     <h7 class="mb-0" style="color: #FFCD38;">Total Produk</h7>
                                     <h2 class="mb-0" style="color: #FFCD38;">{{ stats.total_products }}</h2>
                                 </div>
-                                <i class="bi bi bi-box bi-box-seam-fill fs-1" style="color: #FFCD38;"></i>
+                                <i class="bi bi-box bi-box-seam-fill fs-1" style="color: #FFCD38;"></i>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="col">
+                <div class="col-12 col-sm-6 col-md-4 col-lg">
                     <div class="card shadow bg-black text-white card-dasboard">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
@@ -120,7 +132,7 @@
             <!-- Revenue Chart Section -->
             <div class="row">
                 <div class="col-md-6 mb-4">
-                    <div class="card shadow bg-white mb-4 py-4 card-dasboard">
+                    <div class="card shadow bg-white mb-4 p-4 card-dasboard">
                         <div class="card-body">
                             <h5 class="card-title" style="color: black;">Trend Pasien Baru (12 Bulan terakhir)</h5>
                             <div class="chart-wrapper">
@@ -130,7 +142,7 @@
                     </div>
                 </div>
                 <div class="col-md-6 mb-4 ">
-                    <div class="card shadow bg-white mb-4 py-4 card-dasboard">
+                    <div class="card shadow bg-white mb-4 p-4 card-dasboard">
                         <div class="card-body">
                             <h5 class="card-title" style="color: black;">Trend Pendapatan (12 Bulan terakhir)</h5>
                             <div class="chart-wrapper">
@@ -143,7 +155,7 @@
 
             <div class="row">
                 <div class="col-md-6 mb-4 ">
-                    <div class="card shadow bg-white mb-4 py-4 card-dasboard">
+                    <div class="card shadow bg-white mb-4 p-4 card-dasboard">
                         <div class="card-body">
                             <h5 class="card-title" style="color: black;">Trend Transaksi (12 Bulan terakhir)</h5>
                             <div class="chart-wrapper">
@@ -153,14 +165,14 @@
                     </div>
                 </div>
                 <div class="col-md-6 mb-4">
-                    <div class="card shadow bg-white py-4 mb-4 card-dasboard">
+                    <div class="card shadow bg-white p-4 mb-4 card-dasboard">
                         <div class="card-body">
                             <h5 class="card-title mb-4" style="color: black;">Layanan & Produk Terlaris</h5>
                             <div class="row chart-wrapper">
-                                <div class="col-md-6">
+                                <div class="col-12 col-md-6">
                                     <div id="layananChartPie" class="chart-container"></div>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-12 col-md-6">
                                     <div id="produkChartPie" class="chart-container"></div>
                                 </div>
                             </div>
@@ -331,17 +343,17 @@
         var options = {
             title: 'Layanan Terlaris',
             backgroundColor: 'transparent',
-            titleTextStyle: { 
-                color: '#FFCD38',
+            titleTextStyle: {
+                color: 'black',
                 fontSize: 18,
                 bold: true
             },
-            legend: { 
+            legend: {
                 position: 'none'
             },
             pieSliceText: 'label',
             pieSliceTextStyle: {
-                color: 'black',
+                color: 'white',
                 fontSize: 12
             },
             slices: {
@@ -351,9 +363,9 @@
             },
             chartArea: {
                 left: 0,
-                top: 40,
+                top: 0,
                 width: '100%',
-                height: '80%'
+                height: '100%'
             }
         };
 
@@ -375,17 +387,17 @@
         var options = {
             title: 'Produk Terlaris',
             backgroundColor: 'transparent',
-            titleTextStyle: { 
-                color: '#FFCD38',
+            titleTextStyle: {
+                color: 'black',
                 fontSize: 18,
                 bold: true
             },
-            legend: { 
+            legend: {
                 position: 'none'
             },
             pieSliceText: 'label',
             pieSliceTextStyle: {
-                color: 'black',
+                color: 'white',
                 fontSize: 12
             },
             slices: {
@@ -395,9 +407,9 @@
             },
             chartArea: {
                 left: 0,
-                top: 40,
+                top: 0,
                 width: '100%',
-                height: '80%'
+                height: '100%'
             }
         };
 
