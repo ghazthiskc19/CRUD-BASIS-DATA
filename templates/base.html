@@ -398,13 +398,61 @@
     {% endblock %}
 </head>
 <body>
-    <div class="wrapper-all">
-        {% block sidebar %}
-        <div class="sidebar" id="sidebar">
-            <div class="px-3 mb-4">
-                <h4 class="text-white">
-                    <img src="{{ url_for('static', filename='assets/2560x831.jpg')}}" alt="logo" class="img-fluid img-logo" />
-                </h4>
+    <!-- This is a test comment -->
+    {% block sidebar %}
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="px-3 mb-4">
+            <h4 class="text-white">
+                <img src="{{ url_for('static', filename='assets/2560x831.jpg')}}" alt="logo" class="img-fluid" />
+            </h4>
+        </div>
+        <nav class="nav flex-column">
+            <a class="nav-link {% if request.endpoint == 'index' %}active{% endif %}" href="{{ url_for('index') }}">
+                <i class="bi bi-house"></i> Dashboard
+            </a>
+            <a class="nav-link {% if request.endpoint == 'kategori.list_kategori' %}active{% endif %}" href="{{ url_for('kategori.list_kategori') }}">
+                <i class="bi bi-grid"></i> Kategori
+            </a>
+            <a class="nav-link {% if request.endpoint == 'layanan.list_layanan' %}active{% endif %}" href="{{ url_for('layanan.list_layanan') }}">
+                <i class="bi bi-list-check"></i> Layanan
+            </a>
+            <a class="nav-link {% if request.endpoint == 'produk.list_produk' %}active{% endif %}" href="{{ url_for('produk.list_produk') }}">
+                <i class="bi bi-box"></i> Produk
+            </a>
+            <a class="nav-link {% if request.endpoint == 'pegawai.list_pegawai' %}active{% endif %}" href="{{ url_for('pegawai.list_pegawai') }}">
+                <i class="bi bi-people"></i> Pegawai
+            </a>
+            <a class="nav-link {% if request.endpoint == 'layanan_pegawai.list_layanan_pegawai' %}active{% endif %}" href="{{ url_for('layanan_pegawai.list_layanan_pegawai') }}">
+                <i class="bi bi-person-check"></i> Layanan Pegawai
+            </a>
+            <a class="nav-link {% if request.endpoint == 'pasien.list_pasien' %}active{% endif %}" href="{{ url_for('pasien.list_pasien') }}">
+                <i class="bi bi-person"></i> Pasien
+            </a>
+            <a class="nav-link {% if request.endpoint == 'transaksi.list_transaksi' %}active{% endif %}" href="{{ url_for('transaksi.list_transaksi') }}">
+                <i class="bi bi-cart"></i> Transaksi
+            </a>
+        </nav>
+    </div>
+    {% endblock %}
+    {% block navbar %}
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container-fluid">
+            <div class="navbar-brand">
+                <span><h3>{% block page_title %}Clinic Management{% endblock %}</h3></span>
+            </div>
+            <div class="ms-auto">
+                <div class="dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fa-solid fa-user-circle"></i>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="{{ url_for('profile') }}">Profile</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{{ url_for('logout') }}">Logout</a></li>
+                    </ul>
+                </div>
             </div>
             <nav class="nav flex-column">
                 <a class="nav-link {% if request.endpoint == 'index' %}active{% endif %}" href="{{ url_for('index') }}">
